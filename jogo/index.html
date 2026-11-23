@@ -1054,8 +1054,8 @@ const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 const TITLES=()=>({main:S.role==='garden'?'A tua loja':'A tua estufa',price:'Preços e lucro',forn:'Comprar plantas',orders:S.role==='garden'?'Encomendas':'Pedidos dos gardens',team:'Equipa',upg:'Obras e melhorias',bank:'Banco',alerts:'Avisos da equipa'});
 function camFit(){
   const cv=$('#map');if(!cv)return null;const W=cv.clientWidth,H=cv.clientHeight;if(!W||!H)return null;
-  const mobile=W<700,top=mobile?96:70,bot=mobile?150:110;
-  const fitH=(H-top-bot)/SH,fitW=W/SW,fit=mobile?Math.max(fitH,fitW):fitH,cam=VS.cam||(VS.cam={k:1,x:null,y:null});
+  const top=W<700?96:70,bot=W<700?150:110;
+  const fit=Math.max((H-top-bot)/SH,W/SW),cam=VS.cam||(VS.cam={k:1,x:null,y:null});
   const z=fit*cam.k,vw=W/z,vh=H/z,T0=top/z,B0=bot/z;
   if(cam.x==null)cam.x=(SW-vw)/2;
   cam.x=SW<=vw?(SW-vw)/2:clamp(cam.x,0,SW-vw);
