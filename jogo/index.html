@@ -897,10 +897,10 @@ const UPG={
   {k:'mkt',n:'Montra e redes sociais',d:'Mais gente da rua entra na loja',c:()=>80}]
 };
 function act(a,arg){
-  if(S&&VS.phase==='night'&&!['tab','noop','zoom','hidetip','close-sheet'].includes(a))return;
+  if(S&&VS.phase==='night'&&!['tab','noop','hidetip','close-sheet'].includes(a))return;
   const p=S?P(arg):null,G=S&&S.role==='garden';
   switch(a){
-  case'role':newGame(arg);setTimeout(()=>say('Arrasta o mapa para ver tudo. Toca nos ícones para abrir os painéis.'),400);break;
+  case'role':newGame(arg);setTimeout(()=>say('Toca nos ícones para abrir os painéis.'),400);break;
   case'tile':
     if(p)UI.sheet={t:'plant',id:p.id};
     else if(arg&&arg[0]==='x'){const i=+arg.slice(1);if(i>=S.slots){S.tab='upg';UI.sheet={t:'panel'};break}if(VS.ghosts[i])return say('Essa planta está a ser levada');if(G){S.tab='forn';UI.sheet={t:'panel'};break}UI.sheet={t:'seeds',slot:i}}
@@ -923,7 +923,6 @@ function act(a,arg){
   case'loan':{const lim=limit(),a=Math.min(UI.lamt||250,lim),d=UI.ldays||10;if(score()<450||a>lim)return say('O banco recusou este valor');const tm=loanTerms(a,d);S.money+=a;S.bank.loans.push({id:S.nid++,amount:a,left:tm.total,inst:tm.inst});S.v++;say(`Crédito aprovado: +${fmt(a)}`);break}
   case'payoff':{const l=S.bank.loans.find(x=>x.id==arg);if(!l)return;if(S.money<l.left)return say('Não tens dinheiro para pagar tudo');S.money-=l.left;l.left=0;S.bank.loans=S.bank.loans.filter(x=>x!==l);S.bank.paid++;S.bank.ok++;S.v++;say('Empréstimo pago. A nota de crédito subiu');break}
   case'tab':S.tab=arg;UI.sheet={t:'panel'};if(arg==='alerts')S.unread=0;break;
-  case'zoom':{const cv=$('#map');zoomAt(VS.cam.k*(+arg>0?1.25:.8),cv.clientWidth/2,cv.clientHeight/2);return}
   case'hidetip':{const t=$('#tip');if(t)t.hidden=true;return}
   case'auto':S.auto[arg]=!S.auto[arg];if(arg==='restock'&&S.auto.restock)restock(true);if(arg==='deliver'&&S.auto.deliver)autoDeliver(true);break;
   case'autosup':S.auto.sup=+arg;break;
@@ -1056,14 +1055,9 @@ function camFit(){
   const cv=$('#map');if(!cv)return null;const W=cv.clientWidth,H=cv.clientHeight;if(!W||!H)return null;
   const top=W<700?96:70,bot=W<700?150:110,fit=Math.max(.5,(H-top-bot)/SH),cam=VS.cam||(VS.cam={k:1,x:null,y:null});
   const z=fit*cam.k,vw=W/z,vh=H/z,T0=top/z,B0=bot/z;
-  if(cam.x==null)cam.x=SW/2-vw/2;
-  if(SW<=vw)cam.x=(SW-vw)/2;else cam.x=clamp(cam.x,0,SW-vw);
-  const ct=SH+T0+B0;if(ct<=vh)cam.y=-T0-(vh-ct)/2;else cam.y=clamp(cam.y??-T0,-T0,SH+B0-vh);
+  cam.x=(SW-vw)/2;
+  const ct=SH+T0+B0;cam.y=-T0-(vh-ct)/2;
   return{W,H,z,vw};
-}
-function zoomAt(k,px,py){
-  const f=camFit();if(!f)return;const cam=VS.cam,wx=cam.x+px/f.z,wy=cam.y+py/f.z;
-  cam.k=clamp(k,.7,2.6);const g=camFit();cam.x=wx-px/g.z;cam.y=wy-py/g.z;camFit();
 }
 function render(){
   const cv=$('#map');if(!cv)return;const f=camFit();if(!f)return;
@@ -1104,23 +1098,20 @@ function shell(){
   $('#game').innerHTML=`<div class="stage"><canvas id="map" aria-label="Mapa"></canvas>
   <header class="top"><div class="chip day" id="c-day"></div><button class="chip" id="c-money" data-act="tab" data-arg="bank">${ic('coin')}<b></b><small id="c-debt" class="r" hidden></small></button><button class="chip" id="c-sat" data-act="tab" data-arg="${G?'main':'orders'}">${ic(G?'smile':'truck')}<b></b></button><button class="chip" id="c-rep" data-act="tab" data-arg="main">${ic('star')}<b></b></button><button class="chip goal" id="c-goal" data-act="tab" data-arg="main" aria-label="Meta">${ic('flag')}<span class="gt"><i></i></span><b></b></button></header>
   <p class="tipb" id="tip" data-act="hidetip"></p>
-  <div class="side-ctl"><button class="rb bell" data-act="tab" data-arg="alerts" aria-label="Avisos da equipa">${ic('bell')}<em id="b-alerts" hidden></em></button><button class="rb water" data-act="waterAll" aria-label="Regar tudo">${ic('drop')}</button><button class="rb" data-act="zoom" data-arg="1" aria-label="Aproximar">${ic('plus')}</button><button class="rb" data-act="zoom" data-arg="-1" aria-label="Afastar">${ic('minus')}</button></div>
+  <div class="side-ctl"><button class="rb bell" data-act="tab" data-arg="alerts" aria-label="Avisos da equipa">${ic('bell')}<em id="b-alerts" hidden></em></button><button class="rb water" data-act="waterAll" aria-label="Regar tudo">${ic('drop')}</button></div>
   <nav class="dock">${dock.map(([k,i,l])=>`<button data-act="tab" data-arg="${k}">${ic(i)}<span>${l}</span>${k==='orders'?'<em id="b-orders" hidden></em>':''}</button>`).join('')}</nav>
   <div class="sr" id="srs"></div></div>`;
-  const cv=$('#map'),pts=new Map();let drag=null,pinch=null;
+  const cv=$('#map'),pts=new Map();let drag=null;
   const toWorld=(cx,cy)=>{const r=cv.getBoundingClientRect(),f=camFit();return{x:VS.cam.x+(cx-r.left)/f.z,y:VS.cam.y+(cy-r.top)/f.z}};
   const hit=(cx,cy)=>{const{x,y}=toWorld(cx,cy);if(LV1ON){const sy=64+y*.72;let b=-1,bb=-1;for(let i=0;i<24;i++){const q=lv1Pot(i);if(i>=S.slots){const[bl,br,fl,fr,by_,fy]=L1.B[q.b];if(x>Math.min(bl,fl)*L1.s&&x<Math.max(br,fr)*L1.s&&sy>by_*L1.s&&sy<fy*L1.s)return i;continue}if(Math.abs(x-q.sx)<q.rim*.8&&sy>q.sy-q.rim*1.9&&sy<q.sy+5&&q.sy>bb){b=i;bb=q.sy}}return b}let b=-1,by=-1;for(let i=0;i<12*S.rows;i++){if(LV1ON)break;const p=slotPos(i),open=i<S.slots,yy=Y(p.y,open?TBH:0);if(Math.abs(x-p.x)<22&&y>yy-(open?46:16)&&y<yy+(open?8:16)&&p.y>by){b=i;by=p.y}}return b};
   cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(pts.size===1)drag={x:e.clientX,y:e.clientY,cx:VS.cam.x,cy:VS.cam.y,moved:false};
-    if(pts.size===2){const[a,b]=[...pts.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),k:VS.cam.k};if(drag)drag.moved=true}});
+    if(pts.size===1)drag={x:e.clientX,y:e.clientY,moved:false};else if(drag)drag.moved=true});
   cv.addEventListener('pointermove',e=>{
-    if(!pts.has(e.pointerId)){cv.style.cursor=hit(e.clientX,e.clientY)>=0?'pointer':'grab';return}
+    if(!pts.has(e.pointerId)){cv.style.cursor=hit(e.clientX,e.clientY)>=0?'pointer':'default';return}
     pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(pinch&&pts.size===2){const[a,b]=[...pts.values()],r=cv.getBoundingClientRect();zoomAt(pinch.k*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d,(a.x+b.x)/2-r.left,(a.y+b.y)/2-r.top);return}
-    if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>7)drag.moved=true;if(drag.moved){const f=camFit();VS.cam.x=drag.cx-dx/f.z;VS.cam.y=drag.cy-dy/f.z;camFit()}}});
-  const up=e=>{if(drag&&!drag.moved&&pts.size===1&&S){const i=hit(e.clientX,e.clientY);if(i>=0){const p=S.plants.find(q=>q.slot===i&&!VS.hidden.has(q.id));act('tile',p?String(p.id):'x'+i)}}pts.delete(e.pointerId);if(pts.size<2)pinch=null;if(!pts.size)drag=null};
-  cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{pts.delete(e.pointerId);drag=null;pinch=null});
-  cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect();zoomAt(VS.cam.k*(e.deltaY<0?1.12:1/1.12),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+    if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>7)drag.moved=true}});
+  const up=e=>{if(drag&&!drag.moved&&pts.size===1&&S){const i=hit(e.clientX,e.clientY);if(i>=0){const p=S.plants.find(q=>q.slot===i&&!VS.hidden.has(q.id));act('tile',p?String(p.id):'x'+i)}}pts.delete(e.pointerId);if(!pts.size)drag=null};
+  cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{pts.delete(e.pointerId);drag=null});
 }
 function draw(){
   const st=$('#start'),gm=$('#game');
