@@ -900,7 +900,7 @@ function act(a,arg){
   if(S&&VS.phase==='night'&&!['tab','noop','hidetip','close-sheet'].includes(a))return;
   const p=S?P(arg):null,G=S&&S.role==='garden';
   switch(a){
-  case'role':newGame(arg);setTimeout(()=>say('Toca nos ícones para abrir os painéis.'),400);break;
+  case'role':newGame(arg);setTimeout(()=>say('Arrasta o mapa para ver tudo. Toca nos ícones para abrir os painéis.'),400);break;
   case'tile':
     if(p)UI.sheet={t:'plant',id:p.id};
     else if(arg&&arg[0]==='x'){const i=+arg.slice(1);if(i>=S.slots){S.tab='upg';UI.sheet={t:'panel'};break}if(VS.ghosts[i])return say('Essa planta está a ser levada');if(G){S.tab='forn';UI.sheet={t:'panel'};break}UI.sheet={t:'seeds',slot:i}}
@@ -1053,10 +1053,14 @@ const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 const TITLES=()=>({main:S.role==='garden'?'A tua loja':'A tua estufa',price:'Preços e lucro',forn:'Comprar plantas',orders:S.role==='garden'?'Encomendas':'Pedidos dos gardens',team:'Equipa',upg:'Obras e melhorias',bank:'Banco',alerts:'Avisos da equipa'});
 function camFit(){
   const cv=$('#map');if(!cv)return null;const W=cv.clientWidth,H=cv.clientHeight;if(!W||!H)return null;
-  const top=W<700?96:70,bot=W<700?150:110,fit=Math.max(.5,(H-top-bot)/SH),cam=VS.cam||(VS.cam={k:1,x:null,y:null});
+  const top=W<700?96:70,bot=W<700?150:110;
+  const fit=Math.max((H-top-bot)/SH,W/SW),cam=VS.cam||(VS.cam={k:1,x:null,y:null});
   const z=fit*cam.k,vw=W/z,vh=H/z,T0=top/z,B0=bot/z;
-  cam.x=(SW-vw)/2;
-  const ct=SH+T0+B0;cam.y=-T0-(vh-ct)/2;
+  if(cam.x==null)cam.x=(SW-vw)/2;
+  cam.x=SW<=vw?(SW-vw)/2:clamp(cam.x,0,SW-vw);
+  const ct=SH+T0+B0;
+  if(cam.y==null)cam.y=-T0-(vh-ct)/2;
+  cam.y=ct<=vh?-T0-(vh-ct)/2:clamp(cam.y,-T0,SH+B0-vh);
   return{W,H,z,vw};
 }
 function render(){
@@ -1105,11 +1109,11 @@ function shell(){
   const toWorld=(cx,cy)=>{const r=cv.getBoundingClientRect(),f=camFit();return{x:VS.cam.x+(cx-r.left)/f.z,y:VS.cam.y+(cy-r.top)/f.z}};
   const hit=(cx,cy)=>{const{x,y}=toWorld(cx,cy);if(LV1ON){const sy=64+y*.72;let b=-1,bb=-1;for(let i=0;i<24;i++){const q=lv1Pot(i);if(i>=S.slots){const[bl,br,fl,fr,by_,fy]=L1.B[q.b];if(x>Math.min(bl,fl)*L1.s&&x<Math.max(br,fr)*L1.s&&sy>by_*L1.s&&sy<fy*L1.s)return i;continue}if(Math.abs(x-q.sx)<q.rim*.8&&sy>q.sy-q.rim*1.9&&sy<q.sy+5&&q.sy>bb){b=i;bb=q.sy}}return b}let b=-1,by=-1;for(let i=0;i<12*S.rows;i++){if(LV1ON)break;const p=slotPos(i),open=i<S.slots,yy=Y(p.y,open?TBH:0);if(Math.abs(x-p.x)<22&&y>yy-(open?46:16)&&y<yy+(open?8:16)&&p.y>by){b=i;by=p.y}}return b};
   cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(pts.size===1)drag={x:e.clientX,y:e.clientY,moved:false};else if(drag)drag.moved=true});
+    if(pts.size===1)drag={x:e.clientX,y:e.clientY,cx:VS.cam.x,cy:VS.cam.y,moved:false};else if(drag)drag.moved=true});
   cv.addEventListener('pointermove',e=>{
-    if(!pts.has(e.pointerId)){cv.style.cursor=hit(e.clientX,e.clientY)>=0?'pointer':'default';return}
+    if(!pts.has(e.pointerId)){cv.style.cursor=hit(e.clientX,e.clientY)>=0?'pointer':'grab';return}
     pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>7)drag.moved=true}});
+    if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>7)drag.moved=true;if(drag.moved){const f=camFit();VS.cam.x=drag.cx-dx/f.z;VS.cam.y=drag.cy-dy/f.z;camFit()}}});
   const up=e=>{if(drag&&!drag.moved&&pts.size===1&&S){const i=hit(e.clientX,e.clientY);if(i>=0){const p=S.plants.find(q=>q.slot===i&&!VS.hidden.has(q.id));act('tile',p?String(p.id):'x'+i)}}pts.delete(e.pointerId);if(!pts.size)drag=null};
   cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{pts.delete(e.pointerId);drag=null});
 }
