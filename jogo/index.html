@@ -174,6 +174,7 @@ button.chip{cursor:pointer}button.chip:focus-visible,.dock button:focus-visible,
 <div id="game" hidden></div>
 <div id="layer"></div>
 <script>{
+let S=null,UI={sheet:null,toast:''};
 /* ================= data ================= */
 const SP={
  petunia:{n:'Petúnia',g:3,seed:2,ws:9,dry:30,pk:[1.3,1.3,.8,.5]},
@@ -196,7 +197,6 @@ const STAFF={
   {k:'com',n:'Comercial',w:25,min:0,max:2,d:'Visita os gardens da zona e traz mais pedidos.'}]
 };
 const GOAL=1500,DAYS=30,KEY='vida-garden-5',HS=20;
-let S=null,UI={sheet:null,toast:''};
 const $=s=>document.querySelector(s);
 const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
