@@ -126,7 +126,6 @@ button.chip{cursor:pointer}button.chip:focus-visible,.dock button:focus-visible,
 .chip.day svg{color:#e2a31b}
 .chip small.r{color:#b8321c;font-size:13px}
 .chip.g svg{color:#2f9e44}.chip.w svg{color:#d39a10}.chip.r svg{color:#d2452b}
-.chip #c-sat b{min-width:2ch}
 .chip.goal .gt{width:54px;height:8px;border-radius:8px;background:#dbe6cf;overflow:hidden}.chip.goal .gt i{display:block;height:100%;background:#2f7a2a}
 .chip.goal svg{color:#c92468}
 .tipb{position:absolute;z-index:3;left:8px;right:8px;top:calc(max(8px,env(safe-area-inset-top)) + 100px);margin:0 auto;max-width:520px;background:rgba(19,40,28,.88);color:#fff;border-radius:14px;padding:8px 14px;font-size:14px;line-height:1.35;cursor:pointer}
@@ -1070,13 +1069,9 @@ function render(){
   const D=stateWorld();D.view={x:VS.cam.x,y:VS.cam.y,w:f.vw};drawWorld(cv,D);
 }
 function hud(){
-  if(!$('#c-money'))return;const G=S.role==='garden',dv=debt(),pct=Math.round(Math.max(0,net()/GOAL*100));
+  if(!$('#c-money'))return;const dv=debt(),pct=Math.round(Math.max(0,net()/GOAL*100));
   $('#c-money b').textContent=fmt(S.money);
   const de=$('#c-debt');de.hidden=!dv;de.textContent=dv?'dívida '+fmt(dv):'';
-  const sat=$('#c-sat');
-  if(G){sat.querySelector('b').textContent=Math.round(S.sat)+'%';sat.className='chip '+(S.sat>=65?'g':S.sat>=45?'w':'r')}
-  else sat.querySelector('b').textContent=S.ot.n?Math.round(S.ot.ok/S.ot.n*100)+'%':'–';
-  $('#c-rep b').textContent=Math.round(S.rep);
   $('#c-goal i').style.width=clamp(pct,0,100)+'%';$('#c-goal b').textContent=pct+'%';
   if(!S.won&&net()>=GOAL){S.won=true;layer()}
   const bl=$('#b-alerts');bl.textContent=S.unread;bl.hidden=!S.unread;
@@ -1100,7 +1095,7 @@ function shell(){
   const G=S.role==='garden';
   const dock=(G?[['main','store','Loja'],['price','tag','Preços'],['forn','truck','Comprar'],['orders','clip','Pedidos'],['team','team','Equipa'],['upg','hammer','Obras'],['bank','bank','Banco']]:[['main','sprout','Estufa'],['price','tag','Preços'],['orders','clip','Pedidos'],['team','team','Equipa'],['upg','hammer','Obras'],['bank','bank','Banco']]);
   $('#game').innerHTML=`<div class="stage"><canvas id="map" aria-label="Mapa"></canvas>
-  <header class="top"><div class="chip day" id="c-day"></div><button class="chip" id="c-money" data-act="tab" data-arg="bank">${ic('coin')}<b></b><small id="c-debt" class="r" hidden></small></button><button class="chip" id="c-sat" data-act="tab" data-arg="${G?'main':'orders'}">${ic(G?'smile':'truck')}<b></b></button><button class="chip" id="c-rep" data-act="tab" data-arg="main">${ic('star')}<b></b></button><button class="chip goal" id="c-goal" data-act="tab" data-arg="main" aria-label="Meta">${ic('flag')}<span class="gt"><i></i></span><b></b></button></header>
+  <header class="top"><div class="chip day" id="c-day"></div><button class="chip" id="c-money" data-act="tab" data-arg="bank">${ic('coin')}<b></b><small id="c-debt" class="r" hidden></small></button><button class="chip goal" id="c-goal" data-act="tab" data-arg="main" aria-label="Meta">${ic('flag')}<span class="gt"><i></i></span><b></b></button></header>
   <p class="tipb" id="tip" data-act="hidetip"></p>
   <div class="side-ctl"><button class="rb bell" data-act="tab" data-arg="alerts" aria-label="Avisos da equipa">${ic('bell')}<em id="b-alerts" hidden></em></button><button class="rb water" data-act="waterAll" aria-label="Regar tudo">${ic('drop')}</button></div>
   <nav class="dock">${dock.map(([k,i,l])=>`<button data-act="tab" data-arg="${k}">${ic(i)}<span>${l}</span>${k==='orders'?'<em id="b-orders" hidden></em>':''}</button>`).join('')}</nav>
