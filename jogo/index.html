@@ -559,7 +559,7 @@ function drawTable(t,role,lv1){
 }
 function drawBG(D){
   const G=D.role==='garden',r=rnd(7),fo=166*((D.rows||2)-2);
-  if(D.lv1){const L=LVS[D.role];c.fillStyle=D.role==='garden'?'#5a5f66':'#6fa83a';c.fillRect(-50,-50,SW+100,600);const im=A(L.img);if(im)c.drawImage(im,0,0,SW,L.H);return}
+  if(D.lv1){const L=lvsFor(D.role);c.fillStyle=D.role==='garden'?'#5a5f66':'#6fa83a';c.fillRect(-50,-50,SW+100,600);const im=A(L.img);if(im)c.drawImage(im,0,0,SW,L.H);return}
   else if(G){
     c.save();c.translate(0,fo*K);c.fillStyle='#d6d1c7';c.fillRect(0,Y(476),SW,Y(522)-Y(476));for(let x=0;x<SW;x+=32)L(x,Y(476),x,Y(522),'#c4beb2',1);
     c.fillStyle='#a9a399';c.fillRect(0,Y(522),SW,4);c.fillStyle='#5a5f66';c.fillRect(0,Y(522)+4,SW,SH);c.setLineDash([14,12]);L(0,Y(542),SW,Y(542),'#e8e2c8',2);c.setLineDash([]);RR(176,Y(440),48,22*K,3,'#8a6a4a');O(250,Y(404),14,'rgba(0,0,0,.1)');c.restore();
