@@ -248,7 +248,7 @@ const stand=i=>{if(LV1ON){const q=lv1Pot(i),ci=[[0,1],[1,2],[2,2]][q.b][q.col],c
 let PT,HOMES,QY,SH=467,LV1ON=false;
 const LVS={prod:{img:'p1n_bg',s:400/1199,H:438,B:[[415,540,342,515,252,640],[615,740,608,778,252,640],[825,950,850,1035,252,600]],C:[325,565,800],FY:730,G:565,sign:[243,925]},
  garden:{img:'g2_bg',s:400/1199,H:438,B:[[392,512,335,490,350,660],[605,725,603,760,350,660],[818,938,870,1028,350,660]],C:[312,552,793],FY:745,G:612,SY:1040,sign:[610,772],own:[[215,472],[262,472]],pay:190,reg:[200,505],ped:1112},
- gardenWide:{img:'g2w_bg',s:400/1672,H:225,potK:.2,B:[[485,635,402,587,317,602],[796,954,784,985,317,601],[1128,1278,1200,1400,322,604]],C:[200,710,1080],FY:680,G:835,SY:900,sign:[835,635],own:[[150,460],[190,460]],pay:300,reg:[180,460],ped:570}};
+ gardenWide:{img:'g2w2_bg',s:400/1672,H:225,potK:.2,table:{img:'table_wide',w:712,h:894,scale:.272,at:[[321,220],[763,220],[1205,220]]},B:[[408,498,334,458,224,394],[850,940,775,900,224,394],[1292,1382,1217,1342,225,394]],C:[250,617,1059],FY:415,G:837,SY:750,sign:[837,465],own:[[230,355],[270,355]],pay:350,reg:[280,370],ped:650}};
 let L1=LVS.prod;
 const lvsFor=role=>(innerWidth>=900&&LVS[role+'Wide'])||LVS[role];
 const W1=(ix,iy)=>({x:ix*L1.s,y:(iy*L1.s-64)/.72});
@@ -417,7 +417,7 @@ function flushJobs(){
 /* ---------- canvas drawing: tilted top-down view with height ---------- */
 let c,SPRV=0;
 const K=.72,OY=64,SW=400;let TBH=24;
-const ASSET={p1_bg:[800,875,'jpg'],p1_fenceL:[314,104],p1_fenceR:[312,102],p1_sign:[157,130],p1_pallet:[202,95],p1_crate:[156,94],p1_table:[218,145],p1_barrel:[110,142],p1_barrow:[235,134],p1_truck:[333,132],p1n_bg:[900,985,'jpg'],g2_bg:[900,985,'jpg'],g2w_bg:[1672,941,'jpg']},AIMG={};
+const ASSET={p1_bg:[800,875,'jpg'],p1_fenceL:[314,104],p1_fenceR:[312,102],p1_sign:[157,130],p1_pallet:[202,95],p1_crate:[156,94],p1_table:[218,145],p1_barrel:[110,142],p1_barrow:[235,134],p1_truck:[333,132],p1n_bg:[900,985,'jpg'],g2_bg:[900,985,'jpg'],g2w2_bg:[1672,941,'jpg'],table_wide:[712,894]},AIMG={};
 function assetLoad(){Object.keys(ASSET).forEach(k=>{const im=new Image();im.onload=()=>{SPRV++};im.src='sprites/'+k+'.'+(ASSET[k][2]||'png');AIMG[k]=im})}
 const A=k=>{const im=AIMG[k];return im&&im.complete&&im.naturalWidth?im:null};
 function img(k,cx,bottom,w,flip){const im=A(k);if(!im)return;const[iw,ih]=ASSET[k],h=w*ih/iw;if(flip){c.save();c.translate(cx,0);c.scale(-1,1);c.drawImage(im,-w/2,bottom-h,w,h);c.restore()}else c.drawImage(im,cx-w/2,bottom-h,w,h)}
@@ -559,7 +559,9 @@ function drawTable(t,role,lv1){
 }
 function drawBG(D){
   const G=D.role==='garden',r=rnd(7),fo=166*((D.rows||2)-2);
-  if(D.lv1){const L=lvsFor(D.role);c.fillStyle=D.role==='garden'?'#5a5f66':'#6fa83a';c.fillRect(-50,-50,SW+100,600);const im=A(L.img);if(im)c.drawImage(im,0,0,SW,L.H);return}
+  if(D.lv1){const L=lvsFor(D.role);c.fillStyle=D.role==='garden'?'#5a5f66':'#6fa83a';c.fillRect(-50,-50,SW+100,600);const im=A(L.img);if(im)c.drawImage(im,0,0,SW,L.H);
+    if(L.table){const ti=A(L.table.img);if(ti)for(let b=0;b<3;b++)if(b*8<D.slots){const[px,py]=L.table.at[b];c.drawImage(ti,px*L.s,py*L.s,L.table.w*L.table.scale*L.s,L.table.h*L.table.scale*L.s)}}
+    return}
   else if(G){
     c.save();c.translate(0,fo*K);c.fillStyle='#d6d1c7';c.fillRect(0,Y(476),SW,Y(522)-Y(476));for(let x=0;x<SW;x+=32)L(x,Y(476),x,Y(522),'#c4beb2',1);
     c.fillStyle='#a9a399';c.fillRect(0,Y(522),SW,4);c.fillStyle='#5a5f66';c.fillRect(0,Y(522)+4,SW,SH);c.setLineDash([14,12]);L(0,Y(542),SW,Y(542),'#e8e2c8',2);c.setLineDash([]);RR(176,Y(440),48,22*K,3,'#8a6a4a');O(250,Y(404),14,'rgba(0,0,0,.1)');c.restore();
