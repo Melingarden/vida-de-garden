@@ -247,13 +247,15 @@ const slotPos=i=>{if(LV1ON){const q=lv1Pot(i);return{x:q.sx,y:(q.sy-64)/.72}}con
 const stand=i=>{if(LV1ON){const q=lv1Pot(i),ci=[[0,1],[1,2],[2,2]][q.b][q.col],cx=L1.C[ci];return P1(cx,q.iy+55,cx)}const ti=i/6|0,t=T[ti],row=ti>>1,k=i%6,x=t.x+22+(k%3)*43;return k<3?{x,y:t.y-12,lane:row?195+166*(row-1):48}:{x,y:t.y+TH+12,lane:195+166*row}};
 let PT,HOMES,QY,SH=467,LV1ON=false;
 const LVS={prod:{img:'p1n_bg',s:400/1199,H:438,B:[[415,540,342,515,252,640],[615,740,608,778,252,640],[825,950,850,1035,252,600]],C:[325,565,800],FY:730,G:565,sign:[243,925]},
- garden:{img:'g2_bg',s:400/1199,H:438,B:[[392,512,335,490,350,660],[605,725,603,760,350,660],[818,938,870,1028,350,660]],C:[312,552,793],FY:745,G:612,SY:1040,sign:[610,772],own:[[215,472],[262,472]],pay:190,reg:[200,505],ped:1112}};
+ garden:{img:'g2_bg',s:400/1199,H:438,B:[[392,512,335,490,350,660],[605,725,603,760,350,660],[818,938,870,1028,350,660]],C:[312,552,793],FY:745,G:612,SY:1040,sign:[610,772],own:[[215,472],[262,472]],pay:190,reg:[200,505],ped:1112},
+ gardenWide:{img:'g2w_bg',s:400/1672,H:225,B:[[415,625,385,655,342,648],[765,1005,750,1020,318,648],[1140,1360,1110,1390,340,650]],C:[200,710,1080],FY:680,G:835,SY:900,sign:[835,635],own:[[150,460],[190,460]],pay:300,reg:[180,460],ped:570}};
 let L1=LVS.prod;
+const lvsFor=role=>(innerWidth>=900&&LVS[role+'Wide'])||LVS[role];
 const W1=(ix,iy)=>({x:ix*L1.s,y:(iy*L1.s-64)/.72});
 function lv1Pot(i){const b=i>>3,k=i&7,col=k&1,row=k>>1,v=(row+.72)/4,[bl,br,fl,fr,by,fy]=L1.B[b],xl=bl+(fl-bl)*v,xr=br+(fr-br)*v,ix=xl+(xr-xl)*(col?.73:.27),iy=by+(fy-by)*v;return{ix,iy,b,col,sx:ix*L1.s,sy:iy*L1.s,rim:(xr-xl)*.36*L1.s}}
 const P1=(ix,iy,lane,face)=>{const w=W1(ix,iy);return{x:w.x,y:w.y,lane:lane*L1.s,face}};
 function geo(rows){
-  LV1ON=!!(S&&rows===2);if(S)L1=LVS[S.role];
+  LV1ON=!!(S&&rows===2);if(S)L1=lvsFor(S.role);
   FO=166*(rows-2);SH=Math.round(OYc+(560+FO)*.72);QY=378+FO;
   if(LV1ON){SH=L1.H;T=[];for(let i=0;i<4;i++)T.push({x:i%2?242:28,y:70+166*(i>>1)});
     const fy=W1(0,L1.FY).y,out=P1(L1.G,1340,L1.G);
@@ -415,7 +417,7 @@ function flushJobs(){
 /* ---------- canvas drawing: tilted top-down view with height ---------- */
 let c,SPRV=0;
 const K=.72,OY=64,SW=400;let TBH=24;
-const ASSET={p1_bg:[800,875,'jpg'],p1_fenceL:[314,104],p1_fenceR:[312,102],p1_sign:[157,130],p1_pallet:[202,95],p1_crate:[156,94],p1_table:[218,145],p1_barrel:[110,142],p1_barrow:[235,134],p1_truck:[333,132],p1n_bg:[900,985,'jpg'],g2_bg:[900,985,'jpg']},AIMG={};
+const ASSET={p1_bg:[800,875,'jpg'],p1_fenceL:[314,104],p1_fenceR:[312,102],p1_sign:[157,130],p1_pallet:[202,95],p1_crate:[156,94],p1_table:[218,145],p1_barrel:[110,142],p1_barrow:[235,134],p1_truck:[333,132],p1n_bg:[900,985,'jpg'],g2_bg:[900,985,'jpg'],g2w_bg:[1672,941,'jpg']},AIMG={};
 function assetLoad(){Object.keys(ASSET).forEach(k=>{const im=new Image();im.onload=()=>{SPRV++};im.src='sprites/'+k+'.'+(ASSET[k][2]||'png');AIMG[k]=im})}
 const A=k=>{const im=AIMG[k];return im&&im.complete&&im.naturalWidth?im:null};
 function img(k,cx,bottom,w,flip){const im=A(k);if(!im)return;const[iw,ih]=ASSET[k],h=w*ih/iw;if(flip){c.save();c.translate(cx,0);c.scale(-1,1);c.drawImage(im,-w/2,bottom-h,w,h);c.restore()}else c.drawImage(im,cx-w/2,bottom-h,w,h)}
@@ -624,7 +626,7 @@ function statics(D,items){
   }
 }
 function drawWorld(cv,D){
-  TBH=D.lv1?0:24;if(D.lv1)L1=LVS[D.role];
+  TBH=D.lv1?0:24;if(D.lv1)L1=lvsFor(D.role);
   const v=D.view||{x:0,y:0,w:SW},pw=cv.width,s=pw/v.w,sh=SH,key=D.role+D.slots+'|'+(D.rows||2)+'|'+s.toFixed(3)+'|'+SPRV;
   if(cv._k!==key){const b=document.createElement('canvas');b.width=Math.ceil(SW*s);b.height=Math.ceil(sh*s);c=b.getContext('2d');c.setTransform(s,0,0,s,0,0);drawBG(D);cv._bg=b;cv._k=key}
   c=cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.fillStyle=D.role==='garden'?'#2f3b33':'#5e8a4c';c.fillRect(0,0,pw,cv.height);c.drawImage(cv._bg,Math.round(-v.x*s),Math.round(-v.y*s));c.setTransform(s,0,0,s,-v.x*s,-v.y*s);
