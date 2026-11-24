@@ -250,7 +250,7 @@ const LVS={prod:{img:'p1n_bg',s:400/1199,H:438,B:[[415,540,342,515,252,640],[615
  garden:{img:'g2_bg',s:400/1199,H:438,B:[[392,512,335,490,350,660],[605,725,603,760,350,660],[818,938,870,1028,350,660]],C:[312,552,793],FY:745,G:612,SY:1040,sign:[610,772],own:[[215,472],[262,472]],pay:190,reg:[200,505],ped:1112},
  gardenWide:{img:'g2w2_bg',s:400/1672,H:225,potK:.2,table:{img:'table_wide2',w:579,h:902,scale:.2484,at:[[323,229],[765,229],[1207,229]]},B:[[348,440,340,451,235,405],[790,882,782,893,235,405],[1232,1324,1224,1335,235,405]],C:[260,617,1059],FY:425,G:837,SY:750,sign:[837,465],own:[[230,355],[270,355]],pay:350,reg:[280,370],ped:650}};
 let L1=LVS.prod;
-const lvsFor=role=>(innerWidth>=900&&LVS[role+'Wide'])||LVS[role];
+const lvsFor=role=>LVS[role];
 const W1=(ix,iy)=>({x:ix*L1.s,y:(iy*L1.s-64)/.72});
 function lv1Pot(i){const b=i>>3,k=i&7,col=k&1,row=k>>1,v=(row+.72)/4,[bl,br,fl,fr,by,fy]=L1.B[b],xl=bl+(fl-bl)*v,xr=br+(fr-br)*v,ix=xl+(xr-xl)*(col?.73:.27),iy=by+(fy-by)*v;return{ix,iy,b,col,sx:ix*L1.s,sy:iy*L1.s,rim:(xr-xl)*(L1.potK||.36)*L1.s}}
 const P1=(ix,iy,lane,face)=>{const w=W1(ix,iy);return{x:w.x,y:w.y,lane:lane*L1.s,face}};
