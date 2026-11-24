@@ -248,11 +248,11 @@ const stand=i=>{if(LV1ON){const q=lv1Pot(i),ci=[[0,1],[1,2],[2,2]][q.b][q.col],c
 let PT,HOMES,QY,SH=467,LV1ON=false;
 const LVS={prod:{img:'p1n_bg',s:400/1199,H:438,B:[[415,540,342,515,252,640],[615,740,608,778,252,640],[825,950,850,1035,252,600]],C:[325,565,800],FY:730,G:565,sign:[243,925]},
  garden:{img:'g2_bg',s:400/1199,H:438,B:[[392,512,335,490,350,660],[605,725,603,760,350,660],[818,938,870,1028,350,660]],C:[312,552,793],FY:745,G:612,SY:1040,sign:[610,772],own:[[215,472],[262,472]],pay:190,reg:[200,505],ped:1112},
- gardenWide:{img:'g2w_bg',s:400/1672,H:225,B:[[415,625,385,655,342,648],[765,1005,750,1020,318,648],[1140,1360,1110,1390,340,650]],C:[200,710,1080],FY:680,G:835,SY:900,sign:[835,635],own:[[150,460],[190,460]],pay:300,reg:[180,460],ped:570}};
+ gardenWide:{img:'g2w_bg',s:400/1672,H:225,potK:.2,B:[[415,625,385,655,342,648],[765,1005,750,1020,318,648],[1140,1360,1110,1390,340,650]],C:[200,710,1080],FY:680,G:835,SY:900,sign:[835,635],own:[[150,460],[190,460]],pay:300,reg:[180,460],ped:570}};
 let L1=LVS.prod;
 const lvsFor=role=>(innerWidth>=900&&LVS[role+'Wide'])||LVS[role];
 const W1=(ix,iy)=>({x:ix*L1.s,y:(iy*L1.s-64)/.72});
-function lv1Pot(i){const b=i>>3,k=i&7,col=k&1,row=k>>1,v=(row+.72)/4,[bl,br,fl,fr,by,fy]=L1.B[b],xl=bl+(fl-bl)*v,xr=br+(fr-br)*v,ix=xl+(xr-xl)*(col?.73:.27),iy=by+(fy-by)*v;return{ix,iy,b,col,sx:ix*L1.s,sy:iy*L1.s,rim:(xr-xl)*.36*L1.s}}
+function lv1Pot(i){const b=i>>3,k=i&7,col=k&1,row=k>>1,v=(row+.72)/4,[bl,br,fl,fr,by,fy]=L1.B[b],xl=bl+(fl-bl)*v,xr=br+(fr-br)*v,ix=xl+(xr-xl)*(col?.73:.27),iy=by+(fy-by)*v;return{ix,iy,b,col,sx:ix*L1.s,sy:iy*L1.s,rim:(xr-xl)*(L1.potK||.36)*L1.s}}
 const P1=(ix,iy,lane,face)=>{const w=W1(ix,iy);return{x:w.x,y:w.y,lane:lane*L1.s,face}};
 function geo(rows){
   LV1ON=!!(S&&rows===2);if(S)L1=lvsFor(S.role);
@@ -261,9 +261,9 @@ function geo(rows){
     const fy=W1(0,L1.FY).y,out=P1(L1.G,1340,L1.G);
     PT={home0:P1(300,610,300,Math.PI),home1:P1(880,700,880,0),bin:P1(880,700,880,0),door:P1(L1.G,1000,L1.G),load:P1(720,1080,L1.G),L:out,Rt:out};PT.FYW=fy;
     HOMES={jard:[],vend:[],trab:[PT.home0,PT.home1,P1(440,L1.FY,440),P1(680,L1.FY,680),P1(380,L1.FY,380)]};
-    if(S.role==='garden'){const PS=(ix,iy)=>({...W1(ix,iy),lane:'S'}),dn=Math.PI/2;
-      PT={home0:P1(552,335,552,dn),home1:P1(793,335,793,dn),bin:PS(L1.G,L1.SY),door:PS(L1.G,L1.SY),load:PS(L1.G,L1.SY),L:PS(-72,L1.SY),Rt:PS(1272,L1.SY),FYW:fy,SYW:W1(0,L1.SY).y,DXW:L1.G*L1.s,payF:W1(...L1.reg),pedY:W1(0,L1.ped).y};
-      HOMES={jard:[PT.home0,PT.home1,P1(312,360,312,dn)],vend:[P1(680,L1.FY,680),P1(940,L1.FY,940)],trab:[]}}
+    if(S.role==='garden'){const PS=(ix,iy)=>({...W1(ix,iy),lane:'S'}),dn=Math.PI/2,iw=400/L1.s,edgeL=-.06*iw,edgeR=1.06*iw;
+      PT={home0:P1(L1.C[1],335,L1.C[1],dn),home1:P1(L1.C[2],335,L1.C[2],dn),bin:PS(L1.G,L1.SY),door:PS(L1.G,L1.SY),load:PS(L1.G,L1.SY),L:PS(edgeL,L1.SY),Rt:PS(edgeR,L1.SY),FYW:fy,SYW:W1(0,L1.SY).y,DXW:L1.G*L1.s,payF:W1(...L1.reg),pedY:W1(0,L1.ped).y};
+      HOMES={jard:[PT.home0,PT.home1,P1(L1.C[0],360,L1.C[0],dn)],vend:[P1(L1.C[1],L1.FY,L1.C[1]),P1(L1.C[2],L1.FY,L1.C[2])],trab:[]}}
     return}
   T=[];for(let i=0;i<2*rows;i++)T.push({x:i%2?242:28,y:70+166*(i>>1)});
   const ln=361+FO,h=x=>({x,y:378+FO,lane:ln}),o=500+FO;
