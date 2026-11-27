@@ -207,19 +207,22 @@ const HAIR=['#2b1d14','#5a3825','#a0522d','#d9b26b','#1b1b1b','#8c8c8c','#c0472b
 const SKIN=['#f1c9a5','#e0ac7e','#c68642','#8d5524','#f6d7b8'];
 const SAVE='vdg-proto-1';
 let G=null;
-function fresh(){return{money:40,inv:{petunia:2,lavanda:1},pots:Array(16).fill(null).map((_,i)=>i<5?{sp:KEYS[i%4],g:[1,.6,.2,1,.8][i],w:[80,60,25,90,70][i]}:null),shop:Array(24).fill(null).map((_,i)=>i<6?{sp:KEYS[i%5]}:null),sold:0,scene:'out',px:24*TS,py:24.6*TS,help:true,v:2,tables:2,benches:1}}
+const MAX_TABLES=6,MAX_BENCHES=4,TCOST={3:300,4:450,5:600,6:800},BCOST={2:200,3:320,4:450};
+function fresh(){return{money:40,inv:{petunia:2,lavanda:1},pots:Array(MAX_BENCHES*8).fill(null).map((_,i)=>i<5?{sp:KEYS[i%4],g:[1,.6,.2,1,.8][i],w:[80,60,25,90,70][i]}:null),shop:Array(MAX_TABLES*8).fill(null).map((_,i)=>i<6?{sp:KEYS[i%5]}:null),sold:0,scene:'out',px:24*TS,py:24.6*TS,help:true,v:3,tables:2,benches:1}}
 try{G=JSON.parse(localStorage.getItem(SAVE))}catch(e){}
 if(!G||!G.pots)G=fresh();
 if(!G.v){G.tables=3;G.benches=2}
-G=Object.assign({v:2,price:{},sat:70,open:9,close:20,staff:{caixa:0,repos:0,jard:0},bank:{loans:[],ok:0,miss:0,paid:0},earned:0,start:Date.now(),lastDay:null,lastT:Date.now(),alerts:[],unread:0,akeys:{},tables:2,benches:1},G);G.v=2;
+G=Object.assign({v:3,price:{},sat:70,open:9,close:20,staff:{caixa:0,repos:0,jard:0},bank:{loans:[],ok:0,miss:0,paid:0},earned:0,start:Date.now(),lastDay:null,lastT:Date.now(),alerts:[],unread:0,akeys:{},tables:2,benches:1},G);G.v=3;
+while(G.pots.length<MAX_BENCHES*8)G.pots.push(null);
+while(G.shop.length<MAX_TABLES*8)G.shop.push(null);
 const save=()=>{try{localStorage.setItem(SAVE,JSON.stringify(G))}catch(e){}};
 /* ---------- scenes ---------- */
-const OUT={w:48,h:34},SHOP={w:24,h:14};
+const OUT={w:48,h:42},SHOP={w:38,h:14};
 const tile=(sc,tx,ty)=>{
   if(sc==='shop'){if(ty<3)return'wall';return'wood'}
   if(ty>=20&&ty<=22)return'road';
   if(ty===19||ty===23)return'walk';
-  if(tx>=13&&tx<=33&&ty>=25&&ty<=33)return'dirt';
+  if(tx>=13&&tx<=33&&ty>=25&&ty<=40)return'dirt';
   if(tx>=22&&tx<=24&&ty===24)return'dirt';
   return'grass'};
 const hash=(x,y)=>{let h=x*374761393+y*668265263;h=(h^(h>>13))*1274126177;return((h^(h>>16))>>>0)/4294967295};
@@ -272,28 +275,28 @@ BUILD.forEach(b=>{OUTOBJ.push({k:b.y+b.h,f:()=>building(b)});OUTSOLID.push({x:b.
 [[2,10],[12,9],[32,9],[45,10],[25,4],[28,7],[44,3],[1,18],[46,17],[11,28],[35,29],[46,31],[1,33],[24,33.5],[12,1]].forEach(([tx,ty])=>{const t={x:tx*TS,y:ty*TS};OUTOBJ.push({k:t.y,f:()=>tree(t)});OUTSOLID.push({x:t.x-8,y:t.y-8,w:16,h:10})});
 for(let x=4;x<48;x+=9){const l={x:x*TS,y:19.85*TS};OUTOBJ.push({k:l.y,f:()=>lamp(l)});OUTSOLID.push({x:l.x-4,y:l.y-4,w:8,h:6})}
 [[13,19.8],[33,19.8],[20,23.9]].forEach(([tx,ty])=>{const b={x:tx*TS,y:ty*TS};OUTOBJ.push({k:b.y,f:()=>bench(b)});OUTSOLID.push({x:b.x-26,y:b.y-14,w:52,h:14})});
-{const x0=13*TS,x1=33*TS,y0=25*TS,y1=33*TS;
+{const x0=13*TS,x1=33*TS,y0=25*TS,y1=40*TS;
  OUTOBJ.push({k:y0,f:()=>fenceH({x0,x1:22*TS,y:y0})},{k:y0,f:()=>fenceH({x0:25*TS,x1,y:y0})},{k:y1,f:()=>fenceH({x0,x1,y:y1})});
  for(let y=y0+TS;y<y1;y+=TS){const a={x:x0,y},b={x:x1,y};OUTOBJ.push({k:y,f:()=>fenceV(a)},{k:y,f:()=>fenceV(b)})}
  OUTSOLID.push({x:x0,y:y0-8,w:22*TS-x0,h:10},{x:25*TS,y:y0-8,w:x1-25*TS,h:10},{x:x0,y:y1-8,w:x1-x0,h:10},{x:x0-4,y:y0,w:8,h:y1-y0},{x:x1-4,y:y0,w:8,h:y1-y0});
  const bar={x:15*TS,y:26.6*TS};OUTOBJ.push({k:bar.y,f:()=>barrel(bar)});OUTSOLID.push({x:bar.x-14,y:bar.y-10,w:28,h:12});
  OUTOBJ.push({k:26.4*TS,f:()=>{c.font='700 13px Fredoka,sans-serif';c.textAlign='center';c.lineWidth=4;c.strokeStyle='#fff';c.strokeText('Viveiro',23.5*TS,24.7*TS);c.fillStyle='#2f5a14';c.fillText('Viveiro',23.5*TS,24.7*TS)}});
 }
-const BENCHES=[{x:16*TS,y:28.4*TS,w:15*TS},{x:16*TS,y:31.4*TS,w:15*TS}];
-BENCHES.forEach((b,bi)=>{OUTOBJ.push({k:b.y-14,f:()=>{if(bi<G.benches)palletBench(b);else lockedArea(b.x,b.y-20,b.w,30,'Segunda bancada · Gestão › Loja')}});OUTSOLID.push({x:b.x,y:b.y-12,w:b.w,h:20,bi})});
+const BENCHES=[28.4,31.4,34.4,37.4].map(y=>({x:16*TS,y:y*TS,w:15*TS}));
+BENCHES.forEach((b,bi)=>{OUTOBJ.push({k:b.y-14,f:()=>{if(bi<G.benches)palletBench(b);else lockedArea(b.x,b.y-20,b.w,30,'Mais uma bancada · Gestão › Loja')}});OUTSOLID.push({x:b.x,y:b.y-12,w:b.w,h:20,bi})});
 const POTS=[];BENCHES.forEach((b,bi)=>{for(let i=0;i<8;i++)POTS.push({x:b.x+20+i*(b.w-40)/7,y:b.y-3})});
 function lockedArea(x,y,w,h,t){c.save();c.setLineDash([8,6]);c.beginPath();c.roundRect(x,y,w,h,8);c.fillStyle='rgba(255,255,255,.18)';c.fill();c.strokeStyle='rgba(59,42,32,.55)';c.lineWidth=2;c.stroke();c.restore();c.font='700 12px Fredoka,sans-serif';c.textAlign='center';c.fillStyle='rgba(59,42,32,.75)';const lines=t.split(' · ');lines.forEach((l,i)=>c.fillText(l,x+w/2,y+h/2+4+(i-(lines.length-1)/2)*15))}
 /* shop interior — drawn in code */
-const RW=24*TS,RH=14*TS,BW=3.4*TS,FW=13*TS,DG=[10.7*TS,13.3*TS];
-const TBL=[7,11.7,16.4].map(x=>({x:x*TS,y:4.7*TS,w:2.6*TS,h:5.3*TS}));
-const COR=[6.15,10.65,15.35,19.85].map(v=>v*TS);
+const RW=38*TS,RH=14*TS,BW=3.4*TS,FW=13*TS,DG=[17.7*TS,20.3*TS];
+const TBL=[7,11.7,16.4,21.1,25.8,30.5].map(x=>({x:x*TS,y:4.7*TS,w:2.6*TS,h:5.3*TS}));
+const COR=[0,1,2,3,4,5,6].map(i=>(6.15+i*4.7)*TS);
 const SLOTS=[];TBL.forEach((t,ti)=>{for(let r=0;r<4;r++)for(let col=0;col<2;col++){const y=t.y+30+r*(t.h-44)/4+4;SLOTS.push({x:t.x+t.w*(col?.73:.27),y,rim:21,cx:COR[ti+col],sy:y+6})}});
 const CTR={x:.45*TS,y:7*TS,w:4.7*TS,h:2.7*TS};
 const CNT={a:{x:2.8*TS,y:6.45*TS},b:{x:5.75*TS,y:8.6*TS},reg:{x:3.9*TS,y:7.3*TS}};
-const DECO=[{sp:'monstera',x:21.9*TS,y:5.4*TS,r:34},{sp:'oliveira',x:22.2*TS,y:8.9*TS,r:34},{sp:'monstera',x:21.7*TS,y:12.2*TS,r:30},{sp:'oliveira',x:9.6*TS,y:12.3*TS,r:22},{sp:'lavanda',x:14.4*TS,y:12.3*TS,r:22}];SHOPSOLID.push({x:15.6*TS-14,y:12.6*TS-8,w:28,h:10});
-SHOPSOLID.push(...TBL.map((t,ti)=>({x:t.x-4,y:t.y+10,w:t.w+8,h:t.h-6,ti})),{x:CTR.x,y:CTR.y+10,w:CTR.w,h:CTR.h-10},...DECO.map(d=>({x:d.x-d.r*.55,y:d.y-10,w:d.r*1.1,h:12})),{x:17.9*TS,y:BW-4,w:3*TS,h:20});
+const DECO=[{sp:'monstera',x:35.9*TS,y:5.4*TS,r:34},{sp:'oliveira',x:36.2*TS,y:8.9*TS,r:34},{sp:'monstera',x:35.7*TS,y:12.2*TS,r:30},{sp:'oliveira',x:9.6*TS,y:12.3*TS,r:22},{sp:'lavanda',x:14.4*TS,y:12.3*TS,r:22},{sp:'petunia',x:24.75*TS,y:12.3*TS,r:22},{sp:'suculenta',x:29.45*TS,y:12.3*TS,r:22}];SHOPSOLID.push({x:15.6*TS-14,y:12.6*TS-8,w:28,h:10});
+SHOPSOLID.push(...TBL.map((t,ti)=>({x:t.x-4,y:t.y+10,w:t.w+8,h:t.h-6,ti})),{x:CTR.x,y:CTR.y+10,w:CTR.w,h:CTR.h-10},...DECO.map(d=>({x:d.x-d.r*.55,y:d.y-10,w:d.r*1.1,h:12})),{x:28.3*TS,y:BW-4,w:3*TS,h:20});
 function shopBlocked(x,y){if(y<BW+6||x<16||x>RW-16)return true;if(y>FW-4&&!(x>DG[0]+10&&x<DG[1]-10))return true;if(y>RH-4)return true;const fx=x-8,fy=y-6;return SHOPSOLID.some(r=>(r.ti==null||r.ti<G.tables)&&fx<r.x+r.w&&fx+16>r.x&&fy<r.y+r.h&&fy+8>r.y)}
-const POUT={x:23.5*TS,y:19.75*TS},PIN={x:12*TS,y:13.9*TS};
+const POUT={x:23.5*TS,y:19.75*TS},PIN={x:19*TS,y:13.9*TS};
 /* shop drawing */
 function bug(x,y){O(x,y,4.2,'#d2452b');c.beginPath();c.arc(x,y,4.2,0,TAU);c.strokeStyle=OL;c.lineWidth=1;c.stroke();L(x,y-4,x,y+4,OL,1);O(x-1.8,y-1,1,'#222');O(x+1.8,y+1.4,1,'#222');O(x,y-4.5,1.8,'#222')}
 function potT(x,y,s){c.beginPath();c.moveTo(x-s,y-s*1.3);c.lineTo(x+s,y-s*1.3);c.lineTo(x+s*.75,y);c.lineTo(x-s*.75,y);c.closePath();c.fillStyle='#d2713f';c.fill();outline(1.2);c.beginPath();c.roundRect(x-s*1.1,y-s*1.5,s*2.2,s*.45,1.5);c.fillStyle='#e0844f';c.fill();outline(1.2)}
@@ -301,7 +304,7 @@ function can(x,y,col){c.beginPath();c.roundRect(x-9,y-16,18,16,4);c.fillStyle=co
 function bag(x,y){c.beginPath();c.roundRect(x-13,y-20,26,20,5);c.fillStyle='#e8dcc0';c.fill();outline(1.4);c.fillStyle='#6f9a3c';c.fillRect(x-7,y-13,14,6)}
 function shelf(x0,x1,y){c.fillStyle='rgba(0,0,0,.12)';c.fillRect(x0,y,x1-x0,6);c.beginPath();c.rect(x0,y-6,x1-x0,6);c.fillStyle='#b7834c';c.fill();outline(1.4);[x0+6,x1-10].forEach(bx=>{c.fillStyle='#8a5a35';c.fillRect(bx,y,4,5)})}
 const SHELFITEMS=(()=>{const a=[],sps=['petunia','suculenta','lavanda','orquidea','monstera','oliveira'];let r=7;const rnd=()=>{r=(r*9301+49297)%233280;return r/233280};
- [[18,330,44],[18,330,92],[440,560,44],[440,560,92]].forEach(([x0,x1,y])=>{for(let x=x0+16;x<x1-10;x+=26+rnd()*8){const k=rnd();a.push(k<.55?{t:'pl',sp:sps[Math.floor(rnd()*6)],x,y:y-6,r:11}:k<.8?{t:'pot',x,y:y-6,s:6+rnd()*2}:{t:'pot2',x,y:y-6})}});
+ [[94,406,44],[94,406,92],[606,726,44],[606,726,92],[992,1176,44],[992,1176,92]].forEach(([x0,x1,y])=>{for(let x=x0+16;x<x1-10;x+=26+rnd()*8){const k=rnd();a.push(k<.55?{t:'pl',sp:sps[Math.floor(rnd()*6)],x,y:y-6,r:11}:k<.8?{t:'pot',x,y:y-6,s:6+rnd()*2}:{t:'pot2',x,y:y-6})}});
  return a})();
 function shopFloor(){
   c.fillStyle='#d9ab72';c.fillRect(0,BW,RW,RH-BW);
@@ -312,14 +315,14 @@ function shopFloor(){
   // back wall
   c.fillStyle='#f4ead3';c.fillRect(0,0,RW,BW);c.fillStyle='#e8dbbd';for(let x=0;x<RW;x+=24)c.fillRect(x,10,1,BW-18);
   c.fillStyle='#6f4a2c';c.fillRect(0,0,RW,10);c.fillStyle='#a8723f';c.fillRect(0,BW-8,RW,8);
-  shelf(14,334,44);shelf(14,334,92);shelf(436,564,44);shelf(436,564,92);
+  shelf(90,410,44);shelf(90,410,92);shelf(602,730,44);shelf(602,730,92);shelf(988,1180,44);shelf(988,1180,92);
   // window on the back wall
-  c.beginPath();c.roundRect(600,16,150,66,6);c.fillStyle='#bfe3ef';c.fill();outline(2);c.fillStyle='rgba(255,255,255,.55)';c.fillRect(610,22,16,30);L(675,16,675,82,OL,2);c.beginPath();c.rect(594,80,162,8);c.fillStyle='#c98d52';c.fill();outline(1.4);
-  pAt('petunia',2,622,86,12);pAt('suculenta',2,652,86,11);pAt('lavanda',2,700,86,12);pAt('petunia',2,730,86,12);
+  c.beginPath();c.roundRect(784,16,150,66,6);c.fillStyle='#bfe3ef';c.fill();outline(2);c.fillStyle='rgba(255,255,255,.55)';c.fillRect(794,22,16,30);L(859,16,859,82,OL,2);c.beginPath();c.rect(778,80,162,8);c.fillStyle='#c98d52';c.fill();outline(1.4);
+  pAt('petunia',2,806,86,12);pAt('suculenta',2,836,86,11);pAt('lavanda',2,884,86,12);pAt('petunia',2,914,86,12);
   // sign
-  c.beginPath();c.roundRect(344,18,84,62,10);c.fillStyle='#2f7a2a';c.fill();outline(2);c.font='700 15px Fredoka,sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText('Vida de',386,44);c.fillText('Garden',386,62);O(386,12,3,OL);L(366,18,386,12,OL,1.5);L(406,18,386,12,OL,1.5);
+  c.beginPath();c.roundRect(464,18,84,62,10);c.fillStyle='#2f7a2a';c.fill();outline(2);c.font='700 15px Fredoka,sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText('Vida de',506,44);c.fillText('Garden',506,62);O(506,12,3,OL);L(486,18,506,12,OL,1.5);L(526,18,506,12,OL,1.5);
   SHELFITEMS.forEach(o=>{if(o.t==='pl')pAt(o.sp,2,o.x,o.y,o.r);else if(o.t==='pot')potT(o.x,o.y,o.s);else{potT(o.x-4,o.y,5);potT(o.x+5,o.y,5)}});
-  can(474,38,'#3e9a4a');can(508,38,'#2f7fd0');can(540,38,'#d94b3b');
+  can(640,38,'#3e9a4a');can(674,38,'#2f7fd0');can(706,38,'#d94b3b');
   // side walls
   c.fillStyle='#e3d3b1';c.fillRect(0,0,10,RH);c.fillRect(RW-10,0,10,RH);c.fillStyle='#6f4a2c';c.fillRect(8,0,2,RH);c.fillRect(RW-10,0,2,RH);
 }
@@ -603,7 +606,7 @@ function gestHTML(){const t=UI.tab;let h='';
   if(t==='shop'){const s=Math.round(G.sat),face=s>=75?'😄':s>=50?'🙂':s>=30?'😐':'😠';
     h=`<div class="card"><h3>Satisfação ${face} ${s}%</h3><div class="meter"><i style="width:${s}%;background:${s>=50?'#2f9e44':s>=30?'#e0a21b':'#d2452b'}"></i></div><p>Sobe quando cobras depressa e os preços são justos. Desce com filas longas, mesas vazias e preços caros. Mais satisfação traz mais clientes e melhor crédito.</p></div>
     <div class="card"><h3>Horário · agora ${hh(nowH())} ${isOpen()?'<span class="tag g">aberta</span>':'<span class="tag r">fechada</span>'}</h3><div class="hrs"><span>Abre</span><span class="stp"><button data-x="hr" data-s="open" data-d="-1">−</button><b>${hh(G.open)}</b><button data-x="hr" data-s="open" data-d="1">+</button></span><span>Fecha</span><span class="stp"><button data-x="hr" data-s="close" data-d="-1">−</button><b>${hh(G.close)}</b><button data-x="hr" data-s="close" data-d="1">+</button></span></div></div>
-    <div class="card"><h3>Crescer</h3>${G.tables<3?`<div class="row"><span class="av" style="background:#deaa68">🪑</span><span><b>Terceira mesa na loja</b><small>Mais 8 lugares para plantas</small></span><button class="btn" data-x="xtable" ${G.money<300?'disabled':''}>€300</button></div>`:'<p>A loja tem as 3 mesas.</p>'}${G.benches<2?`<div class="row"><span class="av" style="background:#d19b5c">🌱</span><span><b>Segunda bancada no viveiro</b><small>Mais 8 vasos para cultivar</small></span><button class="btn" data-x="xbench" ${G.money<200?'disabled':''}>€200</button></div>`:'<p>O viveiro tem as 2 bancadas.</p>'}</div>
+    <div class="card"><h3>Crescer</h3>${G.tables<MAX_TABLES?`<div class="row"><span class="av" style="background:#deaa68">🪑</span><span><b>Mais uma mesa na loja</b><small>Mesa ${G.tables+1} de ${MAX_TABLES} · mais 8 lugares para plantas</small></span><button class="btn" data-x="xtable" ${G.money<TCOST[G.tables+1]?'disabled':''}>€${TCOST[G.tables+1]}</button></div>`:`<p>A loja tem as ${MAX_TABLES} mesas.</p>`}${G.benches<MAX_BENCHES?`<div class="row"><span class="av" style="background:#d19b5c">🌱</span><span><b>Mais uma bancada no viveiro</b><small>Bancada ${G.benches+1} de ${MAX_BENCHES} · mais 8 vasos para cultivar</small></span><button class="btn" data-x="xbench" ${G.money<BCOST[G.benches+1]?'disabled':''}>€${BCOST[G.benches+1]}</button></div>`:`<p>O viveiro tem as ${MAX_BENCHES} bancadas.</p>`}</div>
     <dl class="kv"><dt>Plantas vendidas</dt><dd>${G.sold}</dd><dt>Faturado no total</dt><dd>${fmt(G.earned)}</dd></dl>`}
   if(t==='news'){G.unread=0;badge();h=G.alerts.length?G.alerts.map(a=>`<div class="note ${a.lvl}"><small>${new Date(a.t).toLocaleString('pt-PT',{weekday:'short',hour:'2-digit',minute:'2-digit'})} · ${a.who}</small>${a.msg}</div>`).join(''):'<p>Sem avisos. A equipa avisa-te aqui do que faltar.</p>'}
   return`<div class="back" data-x="close"><div class="sheet wide" data-x="noop"><div class="tabs">${TABS.map(([k,i,l])=>`<button data-x="tab" data-s="${k}" aria-pressed="${t===k}"><span>${i}</span>${l}${k==='news'&&G.unread?`<em>${G.unread}</em>`:''}</button>`).join('')}<button data-x="close" aria-label="Fechar">✕</button></div><div class="money">Saldo <b>${fmt(G.money)}</b></div>${h}</div></div>`}
@@ -617,8 +620,8 @@ function gestAct(x,b){const s=b.dataset.s,n=+b.dataset.n,d=+b.dataset.d;
   if(x==='loan'){const lim=limit(),a=Math.min(UI.lamt,lim);if(a<50)return;const tm=loanTerms(a,UI.ldays);G.bank.loans.push({id:Date.now(),amount:a,left:tm.total,inst:tm.inst});G.money+=a;toast(`Banco aprovou ${fmt(a)}`)}
   if(x==='payoff'){const l=G.bank.loans.find(q=>q.id===n);if(l&&G.money>=l.left){G.money-=l.left;l.left=0;G.bank.paid++;G.bank.loans=G.bank.loans.filter(q=>q.left>0)}}
   if(x==='hr'){if(s==='open')G.open=clamp(G.open+d,5,12);else G.close=clamp(G.close+d,16,23)}
-  if(x==='xtable'&&G.money>=300){G.money-=300;G.tables=3;toast('Nova mesa na loja!')}
-  if(x==='xbench'&&G.money>=200){G.money-=200;G.benches=2;toast('Nova bancada no viveiro!')}
+  if(x==='xtable'){const nx=G.tables+1,cost=TCOST[nx];if(nx<=MAX_TABLES&&G.money>=cost){G.money-=cost;G.tables=nx;toast('Nova mesa na loja!')}}
+  if(x==='xbench'){const nx=G.benches+1,cost=BCOST[nx];if(nx<=MAX_BENCHES&&G.money>=cost){G.money-=cost;G.benches=nx;toast('Nova bancada no viveiro!')}}
   save();hud();$('#layer').innerHTML=gestHTML()}
 
 /* ---------- loop ---------- */
