@@ -208,11 +208,11 @@ const SKIN=['#f1c9a5','#e0ac7e','#c68642','#8d5524','#f6d7b8'];
 const SAVE='vdg-proto-1';
 let G=null;
 const MAX_TABLES=6,MAX_BENCHES=4,TCOST={3:300,4:450,5:600,6:800},BCOST={2:200,3:320,4:450};
-function fresh(){return{money:40,inv:{petunia:2,lavanda:1},pots:Array(MAX_BENCHES*8).fill(null).map((_,i)=>i<5?{sp:KEYS[i%4],g:[1,.6,.2,1,.8][i],w:[80,60,25,90,70][i]}:null),shop:Array(MAX_TABLES*8).fill(null).map((_,i)=>i<6?{sp:KEYS[i%5]}:null),sold:0,scene:'out',px:24*TS,py:24.6*TS,help:true,v:3,tables:2,benches:1}}
+function fresh(){return{money:40,inv:{petunia:2,lavanda:1},pots:Array(MAX_BENCHES*8).fill(null).map((_,i)=>i<5?{sp:KEYS[i%4],g:[1,.6,.2,1,.8][i],w:[80,60,25,90,70][i]}:null),shop:Array(MAX_TABLES*8).fill(null).map((_,i)=>i<6?{sp:KEYS[i%5]}:null),sold:0,scene:'out',px:24*TS,py:24.6*TS,help:true,v:3,tables:2,benches:1,goals:{}}}
 try{G=JSON.parse(localStorage.getItem(SAVE))}catch(e){}
 if(!G||!G.pots)G=fresh();
 if(!G.v){G.tables=3;G.benches=2}
-G=Object.assign({v:3,price:{},sat:70,open:9,close:20,staff:{caixa:0,repos:0,jard:0},bank:{loans:[],ok:0,miss:0,paid:0},earned:0,start:Date.now(),lastDay:null,lastT:Date.now(),alerts:[],unread:0,akeys:{},tables:2,benches:1},G);G.v=3;
+G=Object.assign({v:3,price:{},sat:70,open:9,close:20,staff:{caixa:0,repos:0,jard:0},bank:{loans:[],ok:0,miss:0,paid:0},earned:0,start:Date.now(),lastDay:null,lastT:Date.now(),alerts:[],unread:0,akeys:{},tables:2,benches:1,goals:{}},G);G.v=3;
 while(G.pots.length<MAX_BENCHES*8)G.pots.push(null);
 while(G.shop.length<MAX_TABLES*8)G.shop.push(null);
 const save=()=>{try{localStorage.setItem(SAVE,JSON.stringify(G))}catch(e){}};
@@ -440,6 +440,7 @@ function hud(){
   const inv=KEYS.filter(k=>G.inv[k]>0).map(k=>`<span class="chip"><img src="sprites/pl_${k}_2.png" alt="${SP[k].n}"><b>${G.inv[k]}</b></span>`).join('');
   const waiting=custs.filter(c=>c.st==='wait').length;
   $('#hud').innerHTML=`<span class="chip loc">${scene==='out'?(P.y>24.5*TS&&P.y<33*TS&&P.x>13*TS&&P.x<33*TS?'Viveiro':'Rua'):'Loja'}</span><span class="chip" ${G.money<0?'style="background:#ffd9d2"':''}>€<b>${Math.round(G.money)}</b></span><span class="chip">${isOpen()?'🟢':'🔴'}<b>${hh(nowH())}</b></span><span class="chip">${G.sat>=75?'😄':G.sat>=50?'🙂':G.sat>=30?'😐':'😠'}<b>${Math.round(G.sat)}%</b></span>${inv}${waiting&&scene==='out'?`<span class="chip" style="background:#c92468;color:#fff">${waiting} na caixa!</span>`:''}`;
+  badge();
 }
 /* ---------- collision & movement ---------- */
 function blocked(x,y){if(scene==='shop')return shopBlocked(x,y);const sol=OUTSOLID,W=OUT.w*TS,H=OUT.h*TS;if(x<8||x>W-8||y<10||y>H-2)return true;const fx=x-8,fy=y-6;return sol.some(r=>(r.bi==null||r.bi<G.benches)&&fx<r.x+r.w&&fx+16>r.x&&fy<r.y+r.h&&fy+8>r.y)}
@@ -524,7 +525,18 @@ const STAFF=[
  {k:'jard',n:'Marta',r:'Jardineira',w:22,shirt:'#e05a47',d:'No viveiro: rega, trata pragas, colhe e volta a semear.'}];
 const wages=()=>STAFF.reduce((a,s)=>a+(G.staff[s.k]?s.w:0),0);
 function notify(who,key,msg,lvl){const now=Date.now();if(key&&G.akeys[key]&&now-G.akeys[key]<4*60e3)return;if(key)G.akeys[key]=now;const s=STAFF.find(x=>x.k===who);G.alerts.unshift({t:now,who:s?s.n+' · '+s.r:who,msg,lvl:lvl||'w'});G.alerts=G.alerts.slice(0,30);G.unread++;toast((s?s.n+': ':'')+msg);badge()}
-function badge(){const b=$('#menu');if(b)b.dataset.n=G.unread>0?G.unread:''}
+const GOALS=[
+ {id:'sell1',icon:'🌼',label:'Primeira venda',desc:'Vende a tua primeira planta na loja.',reward:10,check:()=>G.sold>=1},
+ {id:'hire1',icon:'🧑‍🌾',label:'Primeira contratação',desc:'Contrata alguém da equipa.',reward:15,check:()=>G.staff.caixa||G.staff.repos||G.staff.jard},
+ {id:'earn200',icon:'💶',label:'Fatura €200',desc:'Chega aos €200 faturados no total.',reward:30,check:()=>G.earned>=200},
+ {id:'table3',icon:'🏗️',label:'Compra o terreno ao lado',desc:'Amplia a loja: desbloqueia a 3ª mesa.',reward:40,check:()=>G.tables>=3},
+ {id:'bench2',icon:'🌱',label:'Amplia o viveiro',desc:'Compra a 2ª bancada do viveiro.',reward:25,check:()=>G.benches>=2},
+ {id:'staffall',icon:'👨‍👩‍👧',label:'Equipa completa',desc:'Contrata a Ana, o Rui e a Marta.',reward:50,check:()=>G.staff.caixa&&G.staff.repos&&G.staff.jard},
+ {id:'earn1000',icon:'💰',label:'Fatura €1000',desc:'Chega aos €1000 faturados no total.',reward:100,check:()=>G.earned>=1000},
+ {id:'table6',icon:'🏪',label:'Loja ao máximo',desc:'Tem as 6 mesas na loja.',reward:150,check:()=>G.tables>=6},
+ {id:'bench4',icon:'🌻',label:'Viveiro ao máximo',desc:'Tem as 4 bancadas no viveiro.',reward:120,check:()=>G.benches>=4},
+ {id:'earn5000',icon:'🏆',label:'Fatura €5000',desc:'Chega aos €5000 faturados no total.',reward:300,check:()=>G.earned>=5000}];
+function badge(){const b=$('#menu');if(!b)return;const ready=GOALS.filter(g=>!G.goals[g.id]&&g.check()).length;const n=G.unread+ready;b.dataset.n=n>0?n:''}
 /* bank */
 const debt=()=>G.bank.loans.reduce((a,l)=>a+l.left,0);
 const days=()=>Math.max(1,(Date.now()-G.start)/864e5);
@@ -591,9 +603,10 @@ function warnings(dt){warnT-=dt;if(warnT>0)return;warnT=10;
     else if(th>=2)notify('Viveiro','dry',`${th} plantas estão a secar no viveiro.`)}
   if(isOpen()&&!G.staff.caixa&&custs.filter(c=>c.st==='wait').length>=2&&scene!=='shop')notify('Loja','queue','Há clientes à espera na caixa. Vai cobrar ou contrata a Ana.')}
 /* ---------- gestão: janela com separadores ---------- */
-const TABS=[['team','👥','Equipa'],['price','🏷️','Preços'],['sup','🚚','Fornecedor'],['bank','🏦','Banco'],['shop','🏪','Loja'],['news','🔔','Avisos']];
-let UI={tab:'team',lamt:250,ldays:10};
+const TABS=[['goals','🎯','Objetivos'],['team','👥','Equipa'],['price','🏷️','Preços'],['sup','🚚','Fornecedor'],['bank','🏦','Banco'],['shop','🏪','Loja'],['news','🔔','Avisos']];
+let UI={tab:'goals',lamt:250,ldays:10};
 function gestHTML(){const t=UI.tab;let h='';
+  if(t==='goals'){const left=GOALS.filter(g=>!G.goals[g.id]).length;h=`<p>${left?`Faltam ${left} objetivos. Cumpre-os para ganhar dinheiro extra e guiar o crescimento do teu negócio.`:'Cumpriste todos os objetivos disponíveis — continua a crescer!'}</p>`+GOALS.map(g=>{const done=G.goals[g.id],ready=!done&&g.check();return`<div class="row"><span class="av" style="background:${done?'#2f9e44':ready?'#c92468':'#c4d6b0'}">${done?'✓':g.icon}</span><span><b>${g.label}</b><small>${g.desc}</small></span>${done?`<span class="tag g">+€${g.reward}</span>`:ready?`<button class="btn" data-x="claim" data-s="${g.id}">Receber €${g.reward}</button>`:`<span class="tag" style="color:#9a9a8f">€${g.reward}</span>`}</div>`}).join('')}
   if(t==='team'){h=`<p>Salários pagos à meia-noite: <b>${fmt(wages())}</b> por dia. A equipa trabalha das ${hh(G.open)} às ${hh(G.close)}.</p>`+STAFF.map(s=>`<div class="row"><span class="av" style="background:${s.shirt}">${s.n[0]}</span><span><b>${s.n} · ${s.r}</b><small>${s.d}</small></span>${G.staff[s.k]?`<button class="btn alt" data-x="fire" data-s="${s.k}">Despedir</button>`:`<button class="btn" data-x="hire" data-s="${s.k}">Contratar<br><small style="color:#fff">${fmt(s.w)}/dia</small></button>`}</div>`).join('')}
   if(t==='price'){h=`<p>O preço de referência é o que os clientes acham justo. Mais caro dá mais lucro por planta, mas vendes menos e a satisfação desce.</p>`+KEYS.map(s=>{const[tg,col]=priceTag(s);return`<div class="row"><img src="sprites/pl_${s}_2.png" alt=""><span><b>${SP[s].n}</b><small>Semente ${fmt(SP[s].seed)} · lucro ${fmt(price(s)-SP[s].seed)} · fornecedor ${fmt(WS(s))} · lucro ${fmt(price(s)-WS(s))}</small><small class="tag ${col}">${tg} · referência ${fmt(SP[s].price)} · compram ${Math.round(buyChance(s)*100)}%</small></span><span class="stp"><button data-x="pr" data-s="${s}" data-d="-1" aria-label="Baixar">−</button><b>${fmt(price(s))}</b><button data-x="pr" data-s="${s}" data-d="1" aria-label="Subir">+</button></span></div>`}).join('')}
   if(t==='sup'){h=`<p>Compra plantas prontas ao produtor. Chegam ao teu stock e depois pões nas mesas (ou o Rui põe).</p>`+KEYS.map(s=>`<div class="row"><img src="sprites/pl_${s}_2.png" alt=""><span><b>${SP[s].n}</b><small>Custa ${fmt(WS(s))} · vendes a ${fmt(price(s))} · tens ${G.inv[s]||0}</small></span><span class="stp"><button class="btn" data-x="buy" data-s="${s}" data-n="1" ${G.money<WS(s)?'disabled':''}>+1</button><button class="btn" data-x="buy" data-s="${s}" data-n="5" ${G.money<WS(s)*5?'disabled':''}>+5</button></span></div>`).join('')}
@@ -612,6 +625,7 @@ function gestHTML(){const t=UI.tab;let h='';
   return`<div class="back" data-x="close"><div class="sheet wide" data-x="noop"><div class="tabs">${TABS.map(([k,i,l])=>`<button data-x="tab" data-s="${k}" aria-pressed="${t===k}"><span>${i}</span>${l}${k==='news'&&G.unread?`<em>${G.unread}</em>`:''}</button>`).join('')}<button data-x="close" aria-label="Fechar">✕</button></div><div class="money">Saldo <b>${fmt(G.money)}</b></div>${h}</div></div>`}
 function gestAct(x,b){const s=b.dataset.s,n=+b.dataset.n,d=+b.dataset.d;
   if(x==='tab')UI.tab=s;
+  if(x==='claim'){const g=GOALS.find(q=>q.id===s);if(g&&!G.goals[s]&&g.check()){G.goals[s]=true;G.money+=g.reward;toast(`Objetivo cumprido: +€${g.reward}`)}}
   if(x==='hire'){G.staff[s]=1;syncStaff();const st=STAFF.find(q=>q.k===s);toast(`${st.n} contratada: ${fmt(st.w)} por dia`.replace('Rui contratada','Rui contratado'))}
   if(x==='fire'){G.staff[s]=0;if(s==='repos'&&crew.repos&&crew.repos.job&&crew.repos.job.sp)G.inv[crew.repos.job.sp]=(G.inv[crew.repos.job.sp]||0)+1;syncStaff()}
   if(x==='pr')G.price[s]=clamp(price(s)+d,1,SP[s].price*3);
