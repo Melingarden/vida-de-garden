@@ -1,13 +1,19 @@
-# Vida de Garden — como continuar no Claude Code
+# Vida de Garden: como continuar no Claude Code
 
-1. Descompacta esta pasta num sítio fixo do computador, por exemplo `Documentos/vida-de-garden`.
+1. Descompacta esta pasta num sítio fixo, por exemplo `Documentos/vida-de-garden`. Se já tinhas a versão anterior, substitui-a por esta.
 2. Abre o Claude Code nessa pasta.
 3. Na primeira mensagem, escreve:
-   > Lê o CLAUDE.md. Este é o meu jogo Vida de Garden. Primeiro põe-no num repositório git e diz-me como o publicar num site grátis para outras pessoas jogarem.
-4. A partir daí, pede as melhorias como fazias aqui. A arte continua a ser feita no ChatGPT: manda as imagens ao Claude Code e ele recorta e monta.
+   > Lê o CLAUDE.md. Este é o meu jogo Vida de Garden. O jogo atual está na pasta jogo/. Põe-no num repositório git e diz-me como o publicar num site grátis para outras pessoas jogarem no telemóvel.
+4. Depois pede as melhorias como fazias aqui.
 
-O que está em cada pasta:
-- `jogo/`: o jogo pronto a abrir (index.html + desenhos)
-- `arte-original/`: as imagens que fizeste no ChatGPT, sem cortes
-- `ferramentas/`: os programas que recortam os desenhos
-- `CLAUDE.md`: a explicação técnica do jogo, para o Claude Code
+## O que há em cada pasta
+
+| Pasta | O que tem |
+|---|---|
+| `jogo/` | O jogo atual: andar pela rua, viveiro, loja e gestão |
+| `jogo-antigo/` | A versão anterior, vista de cima (só como referência) |
+| `arte-original/` | Os teus desenhos do ChatGPT, sem cortes |
+| `ferramentas/` | Os programas que recortam os desenhos |
+| `CLAUDE.md` | A explicação técnica, para o Claude Code ler |
+
+**Dica:** se pedires arte nova, pede ao ChatGPT objetos soltos, como uma mesa ou um balcão, sobre fundo liso. Cenários inteiros numa só imagem saem tortos.

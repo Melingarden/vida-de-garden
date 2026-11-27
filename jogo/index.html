@@ -3,454 +3,108 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Vida de Garden</title>
+<title>Vida de Garden Protótipo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
 <style>
-/* VOICE occasion: a cheerful little management game, warm and tidy
-   IDEA a dollhouse view from above: a real garden-centre floor with tables, a counter and the street; a real greenhouse with benches and a van
-   PICTURE the live top-down map: plants on tables, staff walking to water, customers coming in from the street
-   COLOUR leaf greens lead, terracotta pots support, petunia magenta accent, water blue for water only
-   TYPE Fredoka (rounded, garden-label feel) + Nunito
-   LAYOUT HUD strip; map left and panels right on a laptop; on a phone the map first, then the tabs; sticky day bar */
-:root{color-scheme:light dark;--bg:#e3eed3;--ink:#13281c;--card:#ffffff;--line:#c4d6b0;--muted:#4b6352;--leaf:#2f7a2a;--pink:#c92468;--water:#2378c2;--warn:#b8321c;--amberA:#b07400;--amberB:#8a5a00;--amberC:#f2b134}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f2219;--ink:#e6f1dc;--card:#18332a;--line:#2b4a3c;--muted:#a8bfa9;--leaf:#7cc35a;--pink:#ff5c9b;--water:#5fb0f0;--warn:#ff7a5c;--amberA:#f2b134;--amberB:#f2b134}}
-:root[data-theme=dark]{--bg:#0f2219;--ink:#e6f1dc;--card:#18332a;--line:#2b4a3c;--muted:#a8bfa9;--leaf:#7cc35a;--pink:#ff5c9b;--water:#5fb0f0;--warn:#ff7a5c;--amberA:#f2b134;--amberB:#f2b134}
-:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+/* VOICE occasion: a cosy little walk-around game, playful and warm
+   IDEA a small Portuguese street seen from above: our plant shop, the nursery across the road, neighbours and cars
+   PICTURE the live world filling the screen, the gardener you control walking in it
+   COLOUR grass greens lead, warm wood and terracotta support, magenta accent for the action button
+   TYPE Fredoka for labels, Nunito for text
+   LAYOUT full-screen canvas; chips on top; joystick zone on the left, action button on the right; sheets slide up from the bottom */
+:root{color-scheme:light}
 *{box-sizing:border-box;min-width:0}
-html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:16px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip}
-h1,h2,h3{font-family:Fredoka,Nunito,sans-serif;letter-spacing:-.01em;line-height:1.05;margin:0}
-button{font:inherit;color:inherit;cursor:pointer}
-.wrap{max-width:1180px;margin:0 auto;padding:0 max(16px,3vw)}
-[hidden]{display:none!important}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-#start{padding-block:clamp(24px,5vw,56px)}
-#start h1{font-size:clamp(38px,7vw,60px);color:var(--leaf)}
-#start p.lead{font-size:17px;max-width:46ch;margin:10px 0 24px;color:var(--muted)}
-.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
-.role{all:unset;cursor:pointer;display:grid;background:var(--card);border:2px solid var(--line);border-radius:22px;overflow:hidden;transition:transform .15s,border-color .15s}
-.role:hover,.role:focus-visible{border-color:var(--leaf);transform:translateY(-3px)}
-.role:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
-.role canvas{display:block;width:100%;aspect-ratio:16/9}
-.role .txt{padding:16px 18px 20px}
-.role h2{font-size:28px}
-.role p{margin:6px 0 0;color:var(--muted)}
-.role .go{display:inline-block;margin-top:12px;font-weight:800;color:var(--pink)}
-.hud{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
-.hud .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding-block:8px}
-.hud .who{font-family:Fredoka,sans-serif;font-weight:600;font-size:20px;margin-right:auto}
-.stat{display:flex;flex-direction:column;line-height:1.15}
-.stat b{font-family:Fredoka,sans-serif;font-size:19px;white-space:nowrap}
-.stat span{font-size:13px;color:var(--muted);white-space:nowrap}
-.meta{flex:1 1 100%;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
-.meta .track{flex:1;height:7px;border-radius:8px;background:var(--line);overflow:hidden}
-.meta .track i{display:block;height:100%;background:var(--leaf);border-radius:8px}
-.play{padding-top:12px}
-@media(min-width:900px){.play{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px;align-items:start}.mapcol{position:sticky;top:76px}}
-.tip{margin:0 0 10px;font-size:15px;padding:9px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
-.tip b{color:var(--pink)}
-#map{display:block;width:100%;max-width:100%;aspect-ratio:400/467;margin:0 auto;border-radius:20px;touch-action:manipulation;box-shadow:0 0 0 1px var(--line)}
-.tabs{display:flex;gap:6px;margin:14px 0 10px;overflow-x:auto;padding-bottom:2px}
-@media(min-width:900px){.tabs{margin-top:0}#map{max-width:min(100%,calc((100svh - 250px) * var(--mr,.857)))}}
-.tabs button{flex:none;border:2px solid var(--line);background:var(--card);border-radius:30px;padding:8px 16px;min-height:44px;font-weight:800}
-.tabs button[aria-pressed=true]{background:var(--leaf);border-color:var(--leaf);color:var(--bg)}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:10px;padding-bottom:110px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:grid;grid-template-columns:60px minmax(0,1fr);gap:4px 12px;align-items:center}
-.card .spr{width:60px}
-.card h3{font-size:18px}
-.card p{margin:2px 0;font-size:14px;color:var(--muted)}
-.card .row{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.spr{display:block;aspect-ratio:1}
-.price{font-family:Fredoka,sans-serif;font-size:20px;white-space:nowrap}
-.hot{color:var(--pink);font-weight:800}
-.cold{color:var(--muted);font-weight:800}
-.btn{border:0;border-radius:30px;padding:10px 18px;min-height:44px;font-weight:800;background:var(--leaf);color:var(--bg)}
-.btn.alt{background:transparent;border:2px solid var(--line);color:var(--ink)}
-.btn.pink{background:var(--pink);color:#fff}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn:focus-visible,.tabs button:focus-visible,.seg button:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
-.seg{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-weight:800}
-.seg button{border:2px solid var(--line);background:var(--card);border-radius:30px;padding:6px 14px;min-height:44px;font-weight:800}
-.seg button[aria-pressed=true]{border-color:var(--pink);color:var(--pink)}.seg button:disabled{opacity:.4}
-.note{grid-column:1/-1;font-size:14px;color:var(--muted);margin:0 0 4px}
-.daybar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:10px 0 max(10px,env(safe-area-inset-bottom))}
-.daybar .wrap{display:flex;gap:10px;align-items:center;justify-content:flex-end}
-.daybar .st{margin-right:auto;font-weight:800}
-.daybar .btn{font-size:17px}
-.back{position:fixed;inset:0;z-index:10;background:rgba(5,20,12,.5);display:grid;align-items:end;justify-items:center}
+html,body{margin:0;height:100%;background:#2b3a2e;overflow:hidden;font-family:Nunito,system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hud{position:fixed;z-index:3;top:max(8px,env(safe-area-inset-top));left:8px;right:8px;display:flex;flex-wrap:wrap;gap:6px;pointer-events:none}
+.chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.94);color:#13281c;border-radius:999px;padding:6px 12px 6px 8px;font:800 15px/1 Nunito,sans-serif;min-height:40px;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.chip img{width:26px;height:26px;object-fit:contain}
+.chip b{font:700 17px/1 Fredoka,sans-serif}
+.chip.loc{background:#13281c;color:#fff}
+.hint{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:calc(132px + env(safe-area-inset-bottom));max-width:min(92vw,460px);background:rgba(19,40,28,.9);color:#fff;border-radius:14px;padding:8px 14px;font:700 15px/1.3 Nunito,sans-serif;text-align:center;pointer-events:none}
+.hint:empty{display:none}
+#act{position:fixed;z-index:4;right:max(18px,env(safe-area-inset-right));bottom:calc(26px + env(safe-area-inset-bottom));width:96px;height:96px;border-radius:50%;border:4px solid #fff;background:#c92468;color:#fff;font:800 14px/1.15 Nunito,sans-serif;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,.35);touch-action:none}
+#act:disabled{background:#7d8a80}
+#act:focus-visible{outline:3px solid #ffd84a;outline-offset:3px}
+.toast{position:fixed;z-index:6;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translateX(-50%);background:#fff;color:#13281c;border-radius:30px;padding:9px 18px;font:800 15px Nunito,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:92vw;text-align:center}
+.fade{position:fixed;inset:0;z-index:5;background:#000;opacity:0;pointer-events:none;transition:opacity .22s}
+.back{position:fixed;inset:0;z-index:8;background:rgba(5,20,12,.55);display:grid;align-items:end;justify-items:center}
 @media(min-width:700px){.back{align-items:center}}
-.sheet{background:var(--bg);width:min(100%,560px);max-height:88svh;overflow:auto;border-radius:24px 24px 0 0;padding:20px max(16px,4vw) max(20px,env(safe-area-inset-bottom))}
-@media(min-width:700px){.sheet{border-radius:24px}}
-.sheet h2{font-size:28px;margin-bottom:6px}
-.sheet .top{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:center}
-.sheet .top .spr{width:110px}
-.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:15px;margin:0}
-.kv dt{color:var(--muted)}.kv dd{margin:0;font-weight:800}
-.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-.list{display:grid;gap:8px;margin-top:10px}
-.lrow{display:grid;grid-template-columns:50px minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 10px}
-.lrow .spr{width:50px}
-.lrow b{display:block}.lrow small{font-size:13px;color:var(--muted)}
-.rep{list-style:none;padding:0;margin:12px 0 18px;display:grid;gap:6px}
-.rep li{background:var(--card);border-radius:12px;padding:8px 12px;border:1px solid var(--line);font-size:15px}
-.rep li.g{border-left:5px solid var(--leaf)}.rep li.r{border-left:5px solid var(--warn)}
-.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:20;background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:30px;font-weight:800;max-width:90vw;text-align:center}
-
-.stat b.g{color:var(--leaf)}.stat b.w{color:var(--amberA)}.stat b.r{color:var(--warn)}
-.clk{font-family:Fredoka,sans-serif;font-size:22px;margin-right:8px;font-variant-numeric:tabular-nums}
-.daybar .st{display:flex;align-items:baseline;gap:4px;flex-wrap:wrap;font-size:14px;color:var(--muted);line-height:1.2}
-.daybar .st b{color:var(--ink)}
-.btn.spd{min-width:56px;padding-inline:12px}
-.btn.sm{padding:6px 12px;min-height:40px;font-size:15px}
-.step{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border-radius:30px;padding:3px}
-.step button{width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:var(--card);font-size:20px;font-weight:800;line-height:1}
-.step b{font-family:Fredoka,sans-serif;font-size:19px;min-width:3.2ch;text-align:center;white-space:nowrap}
-.tag{font-size:13px;font-weight:800;padding:2px 10px;border-radius:20px;white-space:nowrap}
-.tag.g{background:color-mix(in srgb,var(--leaf) 18%,transparent);color:var(--leaf)}.tag.w{background:color-mix(in srgb,#f2b134 25%,transparent);color:var(--amberB)}.tag.r{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
-.profit{font-weight:800;font-size:14px;white-space:nowrap}.profit.neg{color:var(--warn)}
-.cnt{font-family:Nunito,sans-serif;font-size:14px;color:var(--muted);font-weight:800}
-.meter{display:grid;grid-template-columns:8.5em minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px;margin:4px 0}
-.meter .track{height:9px;border-radius:9px;background:var(--line);overflow:hidden}.meter i{display:block;height:100%;border-radius:9px}
-.meter i.g{background:var(--leaf)}.meter i.w{background:#f2b134}.meter i.r{background:var(--warn)}.meter i.b{background:var(--water)}
-.meter b{white-space:nowrap}
-.seg .btn{min-height:44px}
-
-body.playing{overflow:hidden;height:100%}
-.stage{position:fixed;inset:0;overflow:hidden;background:#2f3b33;touch-action:none;user-select:none;-webkit-user-select:none}
-#map{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:0;box-shadow:none;max-width:none;aspect-ratio:auto;cursor:grab}
-.top{position:absolute;z-index:3;top:max(8px,env(safe-area-inset-top));left:8px;right:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;pointer-events:none}
-.top>*{pointer-events:auto}
-.chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.94);color:#13281c;border-radius:999px;padding:5px 12px 5px 8px;font:800 16px/1 Nunito,sans-serif;border:0;min-height:42px;box-shadow:0 2px 10px rgba(0,0,0,.18)}
-.chip svg{width:22px;height:22px;flex:none;color:#2f7a2a}
-button.chip{cursor:pointer}button.chip:focus-visible,.dock button:focus-visible,.rb:focus-visible,.closeb:focus-visible{outline:3px solid #ff5c9b;outline-offset:2px}
-.chip.day{padding-right:14px}.chip.day span{display:grid;line-height:1.1}.chip.day b{font:700 19px/1 Fredoka,sans-serif;font-variant-numeric:tabular-nums}.chip.day small{font-size:12px;color:#4b6352;font-weight:700}
-.chip.day svg{color:#e2a31b}
-.chip small.r{color:#b8321c;font-size:13px}
-.chip.g svg{color:#2f9e44}.chip.w svg{color:#d39a10}.chip.r svg{color:#d2452b}
-.chip.goal .gt{width:54px;height:8px;border-radius:8px;background:#dbe6cf;overflow:hidden}.chip.goal .gt i{display:block;height:100%;background:#2f7a2a}
-.chip.goal svg{color:#c92468}
-.tipb{position:absolute;z-index:3;left:8px;right:8px;top:calc(max(8px,env(safe-area-inset-top)) + 100px);margin:0 auto;max-width:520px;background:rgba(19,40,28,.88);color:#fff;border-radius:14px;padding:8px 14px;font-size:14px;line-height:1.35;cursor:pointer}
-.tipb b{color:#ffb3d0}
-@media(min-width:700px){.tipb{top:calc(max(8px,env(safe-area-inset-top)) + 56px);left:auto;right:12px;max-width:340px}}
-.side-ctl{position:absolute;z-index:3;right:10px;bottom:calc(96px + env(safe-area-inset-bottom));display:grid;gap:8px}
-.rb{width:50px;height:50px;border-radius:50%;border:0;background:rgba(255,255,255,.94);color:#13281c;display:grid;place-items:center;font:700 17px Fredoka,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.2)}
-.rb svg{width:22px;height:22px}.rb.water{background:#2378c2;color:#fff}.rb.paused{background:#f2b134}
-.closeb{position:absolute;z-index:3;left:10px;bottom:calc(96px + env(safe-area-inset-bottom));display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;background:#c92468;color:#fff;font:800 16px Nunito,sans-serif;padding:12px 18px;box-shadow:0 2px 10px rgba(0,0,0,.25);min-height:48px}
-.closeb svg{width:20px;height:20px}
-.dock{position:absolute;z-index:3;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:4px;padding:10px 5px max(10px,env(safe-area-inset-bottom));background:linear-gradient(rgba(10,25,16,0),rgba(10,25,16,.6) 40%)}
-.dock button{position:relative;display:grid;justify-items:center;align-content:center;gap:3px;width:min(70px,calc((100vw - 34px)/7));min-height:60px;border:0;border-radius:16px;background:rgba(255,255,255,.95);color:#13281c;padding:6px 2px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
-.dock svg{width:24px;height:24px;color:#2f7a2a}
-.dock span{font:800 12px/1 Nunito,sans-serif;white-space:nowrap;letter-spacing:-.02em}
-.dock em{position:absolute;top:-5px;right:-3px;min-width:20px;height:20px;border-radius:10px;background:#c92468;color:#fff;font:800 12px/20px Nunito,sans-serif;font-style:normal;padding:0 5px}
-.sheet.big{max-height:80svh}
-.sh-h{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:-20px;background:var(--bg);padding:6px 0 4px;z-index:1}
-.sh-h h2{margin:0}
-.xb{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);background:var(--card);display:grid;place-items:center}
-.xb svg{width:20px;height:20px}
-.sheet .cards{padding-bottom:10px}
-.toast{bottom:calc(170px + env(safe-area-inset-bottom))}
-.rb.bell{position:relative;background:#fff}.rb.bell svg{color:#c92468}.rb em{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#c92468;color:#fff;font:800 12px/20px Nunito,sans-serif;font-style:normal;padding:0 5px}
-.card.al{border-left:5px solid var(--line)}.card.al.g{border-left-color:var(--leaf)}.card.al.w{border-left-color:#f2b134}.card.al.r{border-left-color:var(--warn)}
-.card.al .who{margin:0;font-size:13px}.card.al .msg{margin:2px 0;font-size:15px;color:var(--ink)}
-.card .row>span:first-child{font-weight:800}
+.sheet{background:#f4f1e6;color:#13281c;width:min(100%,520px);max-height:86svh;overflow:auto;border-radius:22px 22px 0 0;padding:18px max(16px,4vw) max(18px,env(safe-area-inset-bottom))}
+@media(min-width:700px){.sheet{border-radius:22px}}
+.sheet h2{font:600 26px/1.1 Fredoka,sans-serif;margin:0 0 6px}
+.sheet p{margin:4px 0 10px;font-size:15px;color:#3c5243}
+.row{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;background:#fff;border-radius:16px;padding:6px 10px;margin-top:8px}
+.row img{width:52px;height:52px;object-fit:contain}
+.row small{display:block;color:#4b6352;font-size:13px}
+.btn{border:0;border-radius:30px;padding:10px 18px;min-height:44px;font:800 15px Nunito,sans-serif;background:#2f7a2a;color:#fff;cursor:pointer}
+.btn.alt{background:transparent;border:2px solid #c4d6b0;color:#13281c}
+.btn:disabled{opacity:.4}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:15px;margin:10px 0 14px}
+.land .hint{bottom:auto;top:calc(56px + env(safe-area-inset-top));max-width:52vw;font-size:14px}.land .chip{min-height:34px;padding:4px 10px 4px 6px}.land .back{align-items:center}.land .sheet{border-radius:22px;max-height:94svh}.land #act{width:88px;height:88px;bottom:calc(20px + env(safe-area-inset-bottom))}.land .toast{top:auto;bottom:calc(20px + env(safe-area-inset-bottom))}
+#game{position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden}
+#game.rot90 #cv{position:absolute}
+#game.rot90 .sheet{max-height:calc(var(--gh) - 20px)}#game.rot90 .hint{max-width:calc(var(--gw)*.5)}#game.rot90 .toast{max-width:calc(var(--gw)*.8)}
+.hud{right:76px}
+#menu{position:fixed;z-index:4;top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));width:58px;height:48px;border-radius:16px;border:3px solid #fff;background:#13281c;color:#fff;font:700 13px/1 Fredoka,sans-serif;display:grid;place-items:center;padding:2px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+#menu span{font-size:20px;line-height:1}
+#menu[data-n]:not([data-n=""])::after{content:attr(data-n);position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;border-radius:11px;background:#c92468;color:#fff;font:800 12px/22px Nunito,sans-serif;text-align:center;border:2px solid #fff}
+.sheet.wide{width:min(100%,680px)}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:-4px 0 10px;padding-bottom:2px;position:sticky;top:-18px;background:#f4f1e6;z-index:1;padding-top:4px}
+.tabs button{flex:0 0 auto;border:0;border-radius:14px;background:#fff;color:#13281c;font:800 13px Nunito,sans-serif;padding:6px 10px;min-height:44px;display:flex;align-items:center;gap:5px;position:relative;cursor:pointer}
+.tabs button span{font-size:18px}
+.tabs button[aria-pressed=true]{background:#13281c;color:#fff}
+.tabs button em{font-style:normal;background:#c92468;color:#fff;border-radius:10px;padding:1px 6px;font-size:11px}
+.tabs button:last-child{margin-left:auto;font-size:18px;width:44px;justify-content:center}
+.money{font:600 15px Fredoka,sans-serif;margin:0 0 6px;color:#3c5243}.money b{font-size:20px;color:#13281c}
+.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 20px Fredoka,sans-serif;justify-self:center}
+.stp{display:flex;align-items:center;gap:6px}
+.stp>button:not(.btn){width:40px;height:40px;border-radius:50%;border:2px solid #c4d6b0;background:#fff;font:800 20px/1 Nunito,sans-serif;color:#13281c;cursor:pointer}
+.stp b{font:700 17px Fredoka,sans-serif;min-width:44px;text-align:center}
+.stp .btn{padding:8px 12px}
+.tag{display:inline-block;font-weight:800}.tag.g{color:#2f7a2a}.tag.w{color:#b7791f}.tag.r{color:#c0392b}
+.card{background:#fff;border-radius:16px;padding:10px 14px;margin-top:8px}.card h3{font:600 18px Fredoka,sans-serif;margin:2px 0 6px}.card p{margin:4px 0 8px}
+.meter{height:12px;border-radius:6px;background:#e6e2d3;overflow:hidden}.meter i{display:block;height:100%;border-radius:6px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin:8px 0;font-size:14px}.kv dt{color:#4b6352}.kv dd{margin:0;font-weight:800;text-align:right}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.seg button{border:2px solid #c4d6b0;background:#fff;border-radius:20px;padding:6px 12px;min-height:40px;font:800 14px Nunito,sans-serif;cursor:pointer}.seg button[aria-pressed=true]{background:#2f7a2a;border-color:#2f7a2a;color:#fff}
+.hrs{display:grid;grid-template-columns:auto auto;gap:8px 14px;align-items:center;justify-content:start}
+.note{background:#fff;border-left:5px solid #e0a21b;border-radius:10px;padding:8px 12px;margin-top:8px;font-size:15px}.note.g{border-color:#2f9e44}.note.r{border-color:#d2452b}.note small{display:block;color:#4b6352;font-size:12px;margin-bottom:2px}
+.keys b{font:700 15px Fredoka,sans-serif;color:#c92468}
 </style>
 </head>
 <body>
-<section id="start" class="wrap">
-  <h1>Vida de Garden</h1>
-  <p class="lead">Escolhe o teu lado do negócio das plantas. Tudo acontece à hora real: a loja abre de manhã, fecha à noite e continua a funcionar quando não estás. Meta: €1.500 sem dívidas.</p>
-  <div class="roles">
-    <button class="role" data-act="role" data-arg="garden">
-      <canvas id="artGarden" aria-hidden="true"></canvas>
-      <span class="txt"><h2>Dono de Garden</h2><p>Compras aos produtores, defines os preços, contratas equipa e vês os clientes entrar. Se saírem contentes, voltam.</p><span class="go">Abrir a loja</span></span>
-    </button>
-    <button class="role" data-act="role" data-arg="prod">
-      <canvas id="artProd" aria-hidden="true"></canvas>
-      <span class="txt"><h2>Produtor</h2><p>A tua equipa semeia e cuida da estufa. Os gardens fazem pedidos se o teu preço e as tuas entregas forem bons.</p><span class="go">Entrar na estufa</span></span>
-    </button>
-  </div>
-</section>
-<div id="game" hidden></div>
+<div id="game">
+<canvas id="cv" aria-label="Mundo do jogo"></canvas>
+<div class="hud" id="hud"></div>
+<div class="hint" id="hint" role="status"></div>
+<button id="act" disabled>…</button>
+<button id="menu" aria-label="Gestão"><span>📋</span>Gestão</button>
+<div class="fade" id="fade"></div>
 <div id="layer"></div>
+</div>
 <script>
-let S=null,UI={sheet:null,toast:''};
-/* ================= data ================= */
-const SP={
- petunia:{n:'Petúnia',g:3,seed:2,ws:9,dry:30,pk:[1.3,1.3,.8,.5]},
- lavanda:{n:'Lavanda',g:4,seed:3,ws:14,dry:15,pk:[1.1,1.4,.9,.6]},
- suculenta:{n:'Suculenta',g:5,seed:1,ws:8,dry:8,pk:[1,1,1,1]},
- orquidea:{n:'Orquídea',g:7,seed:8,ws:32,dry:18,pk:[.9,.7,1.1,1.4]},
- monstera:{n:'Monstera',g:6,seed:6,ws:26,dry:20,pk:[1,.9,1.2,1.25]},
- oliveira:{n:'Oliveira',g:9,seed:12,ws:55,dry:12,pk:[1,.8,1.4,.9]}
-};
-const KEYS=Object.keys(SP);
-const SEAS=['Primavera','Verão','Outono','Inverno'];
-const SUP=[{n:'Estufas Vale do Sado',m:.9,q:[58,82]},{n:'Viveiros Oeste Bio',m:1.15,q:[86,100]}];
-const BUYERS=['Garden Flor do Tejo','Viveiro Sintra Verde','Floricultura Rosa dos Ventos','Garden Quinta do Sol','Florista Alfama','Garden Cascais Verde'];
-const CLIENTS=['Casamento na Ericeira','Restaurante Maré','Escritório no Saldanha','Hotel Jardim','Batizado em Cascais','Café Estrela'];
-const STAFF={
- garden:[{k:'jard',n:'Jardineiro',w:20,min:1,max:3,d:'Rega e trata as plantas. Com 2 ou mais, cuidam sozinhos das plantas com sede ou praga.'},
-  {k:'caixa',n:'Caixa',w:18,min:0,max:1,d:'Segundo atendente no balcão: a fila anda duas vezes mais rápido e ninguém desiste de esperar.'},
-  {k:'vend',n:'Vendedor',w:22,min:0,max:2,d:'Ajuda os clientes nas mesas: compram mais e saem mais satisfeitos.'}],
- prod:[{k:'trab',n:'Trabalhador',w:15,min:1,max:5,d:'Semeia, rega, trata e carrega a carrinha. Com 3 ou mais, cuidam sozinhos das plantas com sede ou praga.'},
-  {k:'com',n:'Comercial',w:25,min:0,max:2,d:'Visita os gardens da zona e traz mais pedidos.'}]
-};
-const GOAL=1500,DAYS=30,KEY='vida-garden-5',HS=20;
+{
+const TS=32,TAU=Math.PI*2;
 const $=s=>document.querySelector(s);
+const cv=$('#cv');let c=cv.getContext('2d'),SPRV=0;
+const Y=y=>y;
 const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[R(0,a.length-1)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const pickA=a=>a[R(0,a.length-1)];
-const fmt=n=>'€'+Math.round(n).toLocaleString('pt-PT');
-const dayN=()=>Math.floor(S.t/24)+1;
-const hour=()=>S.t%24;
-const hm=()=>{const h=Math.floor(hour()),m=Math.floor((hour()-h)*6)*10;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')};
-const se=()=>Math.floor((dayN()-1)/8)%4;
-const sm=sp=>SP[sp].pk[se()];
-const mature=p=>p.age>=SP[p.sp].g;
-const qual=p=>.5+p.h/200;
-const ref=sp=>S.role==='garden'?SP[sp].ws*1.8*sm(sp):SP[sp].ws*sm(sp);
-const market=p=>Math.round(SP[p.sp].ws*sm(p.sp)*.6*qual(p));
-const supCost=(i,sp)=>Math.max(1,Math.round(SP[sp].ws*sm(sp)*SUP[i].m*(S.sf[sp]||1)));
-const prodCost=sp=>SP[sp].seed+.5*SP[sp].g;
-const pickSp=()=>{const w=KEYS.map(k=>sm(k));let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<w.length;i++){r-=w[i];if(r<=0)return KEYS[i]}return KEYS[0]};
-const freeSlot=()=>{for(let i=0;i<S.slots;i++)if(!S.plants.some(p=>p.slot===i)&&!VS.ghosts[i])return i;return -1};
-const plant=(sp,age,w,h,pest,slot,cost)=>({id:S.nid++,sp,age,w,h,pest:!!pest,f:0,slot:slot??freeSlot(),cost:cost??0});
-const wages=()=>STAFF[S.role].reduce((a,s)=>a+s.w*S.staff[s.k],0);
-const newToday=()=>({cust:0,buy:0,earn:0,satSum:0,satN:0,miss:0,caro:0,feia:0,got:0,lost:0,del:0,late:0,pests:0,ready:[],lines:[]});
-
-/* ================= side-view sprites (cards and sheets) ================= */
-const fl=(x,y,c1,c2,r)=>[0,72,144,216,288].map(a=>`<circle cx="${(x+r*Math.cos(a*Math.PI/180)).toFixed(1)}" cy="${(y+r*Math.sin(a*Math.PI/180)).toFixed(1)}" r="${r}" fill="${c1}"/>`).join('')+`<circle cx="${x}" cy="${y}" r="${(r*.65).toFixed(1)}" fill="${c2}"/>`;
-const el=(x,y,rx,ry,r,f)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(${r} ${x} ${y})" fill="${f}"/>`;
-const DRAW={
- petunia:(m,st)=>[[36,60,-20],[64,60,20],[50,54,0],[42,50,-35],[58,50,35],[50,62,0]].map(([x,y,r],i)=>el(x,y,11,6,r,i%2?'#3f8a33':'#5aa844')).join('')+(m?[[38,47],[57,42],[48,55],[66,52],[32,57],[60,59]].map(([x,y])=>fl(x,y,'#e0367a','#ffe0ee',3.6)).join(''):''),
- lavanda:m=>el(44,62,10,3,-28,'#7f9f6a')+el(56,62,10,3,28,'#8fae78')+[[33,30],[42,23],[50,19],[58,23],[67,30]].map(([x,y])=>`<path d="M50 66Q${(50+x)/2} 52 ${x} ${y}" stroke="#6f8f4a" stroke-width="2" fill="none"/>`+[0,1,2,3,4].map(k=>`<ellipse cx="${(x+(50-x)*.07*k).toFixed(1)}" cy="${y+k*4.4}" rx="3" ry="2.4" fill="${m?(k%2?'#8a5cc7':'#a77ee0'):'#94b874'}"/>`).join('')).join(''),
- suculenta:m=>[...Array(10)].map((_,i)=>`<ellipse cx="50" cy="47" rx="5.5" ry="12" transform="rotate(${i*36} 50 58)" fill="${i%2?'#5f9e8a':'#74b49e'}"/>`+(m?`<circle cx="50" cy="36" r="2" transform="rotate(${i*36} 50 58)" fill="#e88aa6"/>`:'')).join('')+[...Array(6)].map((_,i)=>`<ellipse cx="50" cy="52" rx="4" ry="7" transform="rotate(${i*60+30} 50 58)" fill="#9bd1bb"/>`).join(''),
- orquidea:(m,st)=>`<path d="M47 66V18" stroke="#b08a5a" stroke-width="1.5"/>`+el(40,62,15,5.5,-12,'#2f6b3a')+el(60,61,15,5.5,14,'#3f8a4a')+(st>.45?`<path d="M52 62C50 40 54 24 66 22C72 21 76 26 78 32" stroke="#5b7a3a" stroke-width="2" fill="none"/>`:'')+(m?[[60,24],[71,24],[78,34],[54,35]].map(([x,y])=>fl(x,y,'#fbeef6','#c2185b',4.2)).join(''):''),
- monstera:m=>[[34,40,-30],[64,34,25],[50,48,0],[71,52,40],[29,56,-50]].slice(0,m?5:3).map(([x,y,r])=>`<path d="M50 66Q${(50+x)/2} ${y+18} ${x} ${y+8}" stroke="#2f7a45" stroke-width="2.5" fill="none"/><g transform="translate(${x} ${y}) rotate(${r}) scale(1.1)"><path d="M0-13C12-13 15 0 0 12C-15 0-12-13 0-13Z" fill="#2e8b4f"/><path d="M0-12V11M0-4L8-8M0 2L9-1M0-4L-8-8M0 2L-9-1" stroke="#1d6338" stroke-width="1.6"/></g>`).join(''),
- oliveira:m=>`<path d="M50 66C46 56 54 50 49 38M49 46C55 42 58 38 60 34M49 44C44 40 40 36 38 32" stroke="#6b5136" stroke-width="3.5" fill="none" stroke-linecap="round"/>`+[[38,30,12,8],[60,30,13,8],[50,22,14,9],[48,34,12,7],[66,22,9,6],[34,22,9,6]].map(([x,y,a,b],i)=>`<ellipse cx="${x}" cy="${y}" rx="${a}" ry="${b}" fill="${['#8fa67a','#a9bb93','#7b9466'][i%3]}"/>`).join('')+(m?[[42,32],[56,26],[62,34],[47,21],[37,26],[66,24]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.9" fill="#3d3a5c"/>`).join(''):'')
-};
-const POTS=`<path d="M31 72h38l-5 24H36z" fill="#c8693c"/><path d="M53 72h16l-5 24H53z" fill="#a4532d"/><rect x="27" y="65" width="46" height="9" rx="3" fill="#d97a48"/><rect x="27" y="65" width="46" height="3" rx="1.5" fill="#eb9a6a"/>`;
-function spr(sp,st=1,pest=false,sick=false,empty=false){
-  let g='';
-  if(empty);else if(st<.3)g=`<path d="M50 68V54" stroke="#3c7d2d" stroke-width="3" stroke-linecap="round"/>`+el(43,53,7,3.5,-25,'#5fae45')+el(57,51,7,3.5,25,'#7cc35a');
-  else{const s=st<1?.45+.55*st:1;g=`<g transform="translate(50 68) scale(${s.toFixed(2)}) translate(-50 -68)">${DRAW[sp](st>=1,st)}</g>`}
-  const bugs=pest?`<g fill="#2a1d12"><circle cx="40" cy="50" r="2.4"/><circle cx="59" cy="43" r="2.4"/><circle cx="53" cy="58" r="2.4"/></g>`:'';
-  if(sick)g=`<defs><filter id="k"><feColorMatrix type="saturate" values=".3"/></filter></defs><g filter="url(#k)">${g}</g>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="spr" aria-hidden="true"><ellipse cx="50" cy="96" rx="25" ry="3.5" fill="#000" opacity=".15"/>${g}${POTS}${empty?'<ellipse cx="50" cy="67" rx="20" ry="2.5" fill="#4a3324"/>':''}${bugs}</svg>`;
-}
-
-/* ================= world and people ================= */
-const CX=200,TAU=Math.PI*2;
-const TW=130,TH=84;let FO=0,T=[];
-const slotPos=i=>{if(LV1ON){const q=lv1Pot(i);return{x:q.sx,y:(q.sy-64)/.72}}const t=T[i/6|0],k=i%6;return{x:t.x+22+(k%3)*43,y:t.y+(k<3?22:62)}};
-const stand=i=>{if(LV1ON){const q=lv1Pot(i),ci=[[0,1],[1,2],[2,2]][q.b][q.col],cx=L1.C[ci];return P1(cx,q.iy+55,cx)}const ti=i/6|0,t=T[ti],row=ti>>1,k=i%6,x=t.x+22+(k%3)*43;return k<3?{x,y:t.y-12,lane:row?195+166*(row-1):48}:{x,y:t.y+TH+12,lane:195+166*row}};
-let PT,HOMES,QY,SH=467,LV1ON=false;
-const LVS={prod:{img:'p1n_bg',s:400/1199,H:438,B:[[415,540,342,515,252,640],[615,740,608,778,252,640],[825,950,850,1035,252,600]],C:[325,565,800],FY:730,G:565,sign:[243,925]},
- garden:{img:'g2_bg',s:400/1199,H:438,B:[[392,512,335,490,350,660],[605,725,603,760,350,660],[818,938,870,1028,350,660]],C:[312,552,793],FY:745,G:612,SY:1040,sign:[610,772],own:[[215,472],[262,472]],pay:190,reg:[200,505],ped:1112},
- gardenWide:{img:'g2w2_bg',s:400/1672,H:225,potK:.2,table:{img:'table_wide2',w:579,h:902,scale:.2484,at:[[323,229],[765,229],[1207,229]]},B:[[348,440,340,451,235,405],[790,882,782,893,235,405],[1232,1324,1224,1335,235,405]],C:[260,617,1059],FY:425,G:837,SY:750,sign:[837,465],own:[[230,355],[270,355]],pay:350,reg:[280,370],ped:650}};
-let L1=LVS.prod;
-const lvsFor=role=>LVS[role];
-const W1=(ix,iy)=>({x:ix*L1.s,y:(iy*L1.s-64)/.72});
-function lv1Pot(i){const b=i>>3,k=i&7,col=k&1,row=k>>1,v=(row+.72)/4,[bl,br,fl,fr,by,fy]=L1.B[b],xl=bl+(fl-bl)*v,xr=br+(fr-br)*v,ix=xl+(xr-xl)*(col?.73:.27),iy=by+(fy-by)*v;return{ix,iy,b,col,sx:ix*L1.s,sy:iy*L1.s,rim:(xr-xl)*(L1.potK||.36)*L1.s}}
-const P1=(ix,iy,lane,face)=>{const w=W1(ix,iy);return{x:w.x,y:w.y,lane:lane*L1.s,face}};
-function geo(rows){
-  LV1ON=!!(S&&rows===2);if(S)L1=lvsFor(S.role);
-  FO=166*(rows-2);SH=Math.round(OYc+(560+FO)*.72);QY=378+FO;
-  if(LV1ON){SH=L1.H;T=[];for(let i=0;i<4;i++)T.push({x:i%2?242:28,y:70+166*(i>>1)});
-    const fy=W1(0,L1.FY).y,out=P1(L1.G,1340,L1.G);
-    PT={home0:P1(300,610,300,Math.PI),home1:P1(880,700,880,0),bin:P1(880,700,880,0),door:P1(L1.G,1000,L1.G),load:P1(720,1080,L1.G),L:out,Rt:out};PT.FYW=fy;
-    HOMES={jard:[],vend:[],trab:[PT.home0,PT.home1,P1(440,L1.FY,440),P1(680,L1.FY,680),P1(380,L1.FY,380)]};
-    if(S.role==='garden'){const PS=(ix,iy)=>({...W1(ix,iy),lane:'S'}),dn=Math.PI/2,iw=400/L1.s,edgeL=-.06*iw,edgeR=1.06*iw;
-      PT={home0:P1(L1.C[1],335,L1.C[1],dn),home1:P1(L1.C[2],335,L1.C[2],dn),bin:PS(L1.G,L1.SY),door:PS(L1.G,L1.SY),load:PS(L1.G,L1.SY),L:PS(edgeL,L1.SY),Rt:PS(edgeR,L1.SY),FYW:fy,SYW:W1(0,L1.SY).y,DXW:L1.G*L1.s,payF:W1(...L1.reg),pedY:W1(0,L1.ped).y};
-      HOMES={jard:[PT.home0,PT.home1,P1(L1.C[0],360,L1.C[0],dn)],vend:[P1(L1.C[1],L1.FY,L1.C[1]),P1(L1.C[2],L1.FY,L1.C[2])],trab:[]}}
-    return}
-  T=[];for(let i=0;i<2*rows;i++)T.push({x:i%2?242:28,y:70+166*(i>>1)});
-  const ln=361+FO,h=x=>({x,y:378+FO,lane:ln}),o=500+FO;
-  PT={home0:h(85),home1:h(320),bin:h(250),door:{x:200,y:o,lane:o},load:{x:268,y:o,lane:o},L:{x:-24,y:o,lane:o},Rt:{x:424,y:o,lane:o}};
-  HOMES={jard:[h(320),h(345),h(298)],vend:[{x:140,y:ln,lane:ln},{x:262,y:195,lane:195}],trab:[PT.home0,PT.home1,h(150),h(290),h(110)]};
-}
-const OYc=64;geo(2);
-const LOOKS={jard:[{rig:1,shirt:'#f2efe6',apron:'#2f7a2a',hair:'#a0522d',skin:'#f1c9a5'},{rig:1,shirt:'#e9e4d6',apron:'#2f7a2a',hair:'#1b1b1b',skin:'#8d5524'},{rig:1,shirt:'#f2efe6',apron:'#2f7a2a',hair:'#d9b26b',skin:'#f6d7b8'}],
- vend:[{shirt:'#ffffff',apron:'#f08a24',hair:'#5a3825',skin:'#e0ac7e'},{shirt:'#ffffff',apron:'#f08a24',hair:'#c0472b',skin:'#f1c9a5'}],
- trab:[{rig:1,shirt:'#4a7fa8',pants:'#2f4f6e',hair:'#2b1d14',skin:'#c68642',hat:1},{rig:1,shirt:'#b5562d',pants:'#4a3b2a',hair:'#5a3825',skin:'#f1c9a5',hat:1},{rig:1,shirt:'#5c8d3a',pants:'#3d4a5c',hair:'#1b1b1b',skin:'#8d5524',hat:1},{rig:1,shirt:'#7b5ea7',pants:'#2f4f6e',hair:'#d9b26b',skin:'#f6d7b8',hat:1},{rig:1,shirt:'#d16ba5',pants:'#4a3b2a',hair:'#8c8c8c',skin:'#e0ac7e',hat:1}]};
-const SHIRTS=['#e05a47','#3d7cc9','#f2b134','#7b5ea7','#2a9d8f','#e76f51','#264653','#d16ba5','#f4a261','#5c8d3a'];
-const HAIR=['#2b1d14','#5a3825','#a0522d','#d9b26b','#1b1b1b','#8c8c8c','#c0472b'];
-const SKIN=['#f1c9a5','#e0ac7e','#c68642','#8d5524','#f6d7b8'];
-let VS;
-function resetVS(){VS={walkers:[],jobs:[],ghosts:{},hidden:new Set(),parts:[],floats:[],q:[],serve:0,phase:'open',nt:0,nightDone:false,night:0,van:{x:0,st:'park',load:0,pending:0},svan:0,door:0,pedT:2,acc:0,hudT:0,panT:0,saveT:0,pv:'',pd:false}}
-resetVS();
-function mkW(o){return Object.assign({x:0,y:0,lane:352,dir:Math.PI/2,walk:0,speed:72,script:[],path:null,carry:null,anim:null,bubble:null,idleT:1+Math.random()*2,moving:false,done:false},o)}
-function staffWalkers(arrive){
-  const out=[];if(!onShift())return out;
-  if(S.role==='garden'){
-    out.push(mkW({role:'owner',...(LV1ON?W1(...L1.own[0]):{x:85,y:440+FO}),lane:-1,dir:-Math.PI/2,look:{shirt:'#ffffff',apron:'#c92468',hair:'#2b1d14',skin:'#e0ac7e'},label:'Tu'}));
-    if(S.staff.caixa)out.push(mkW({role:'owner',...(LV1ON?W1(...L1.own[1]):{x:122,y:440+FO}),lane:-1,dir:-Math.PI/2,look:{shirt:'#ffffff',apron:'#3d7cc9',hair:'#d9b26b',skin:'#f6d7b8'}}));
-    for(let i=0;i<S.staff.jard;i++){const h=HOMES.jard[i];out.push(mkW({role:'staff',x:h.x,y:h.y,lane:h.lane,home:h,look:LOOKS.jard[i]}))}
-    for(let i=0;i<S.staff.vend;i++){const h=HOMES.vend[i];out.push(mkW({role:'vend',x:h.x,y:h.y,lane:h.lane,home:h,speed:60,look:LOOKS.vend[i]}))}
-  }else for(let i=0;i<S.staff.trab;i++){const h=HOMES.trab[i];out.push(mkW({role:'worker',x:h.x,y:h.y,lane:h.lane,home:h,look:LOOKS.trab[i]}))}
-  if(arrive)out.forEach((w,i)=>{if(w.home){if(LV1ON){w.x=PT.L.x;w.y=PT.L.y+i*12;w.lane=PT.L.lane}else{w.x=i%2?-24-i*20:424+i*20;w.y=PT.door.y;w.lane=PT.door.lane}w.script=[{go:w.home}]}});
-  return out;
-}
-function setupWalkers(arrive){VS.walkers=VS.walkers.filter(w=>['cust','courier','ped','leaving'].includes(w.role)).concat(staffWalkers(arrive))}
-function route(w,g){if(w.role==='ped')return[{x:g.x,y:g.y}];if(LV1ON){const p=[],FY=PT.FYW,S_='S';
-  if(w.lane===S_&&g.lane===S_)return[{x:g.x,y:g.y}];
-  let cur;if(w.lane===S_){p.push({x:PT.DXW,y:w.y});p.push({x:PT.DXW,y:FY});cur=PT.DXW}
-  else{if(Math.abs(w.x-w.lane)>.5)p.push({x:w.lane,y:w.y});cur=w.lane;if(g.lane===cur){p.push({x:g.lane,y:g.y});if(Math.abs(g.x-g.lane)>.5)p.push({x:g.x,y:g.y});return p}p.push({x:cur,y:FY})}
-  if(g.lane===S_){p.push({x:PT.DXW,y:FY});p.push({x:PT.DXW,y:g.y});p.push({x:g.x,y:g.y});return p}
-  p.push({x:g.lane,y:FY});p.push({x:g.lane,y:g.y});if(Math.abs(g.x-g.lane)>.5)p.push({x:g.x,y:g.y});return p}const p=[];if(Math.abs(w.y-w.lane)>.5)p.push({x:w.x,y:w.lane});if(w.lane!==g.lane){p.push({x:CX,y:w.lane});p.push({x:CX,y:g.lane})}p.push({x:g.x,y:g.lane});if(Math.abs(g.y-g.lane)>.5)p.push({x:g.x,y:g.y});return p}
-const turn=(w,a,k)=>{let d=((a-w.dir+3*Math.PI)%TAU)-Math.PI;w.dir+=d*Math.min(1,k*12);w.dir=Math.atan2(Math.sin(w.dir),Math.cos(w.dir))};
-function moveAlong(w,dt){
-  let d=w.speed*dt*((w.role==='worker'||w.role==='staff')?1+Math.min(2,VS.jobs.length/3):1);
-  while(d>0&&w.path.length){const p=w.path[0],dx=p.x-w.x,dy=p.y-w.y,L=Math.hypot(dx,dy);if(L<.01){w.path.shift();continue}const m=Math.min(d,L);w.x+=dx/L*m;w.y+=dy/L*m;d-=m;w.walk+=m;w.moving=true;turn(w,Math.atan2(dy,dx),dt);if(m>=L-.001)w.path.shift()}
-}
-function jobScript(j,w){
-  const st=stand(j.slot),tool=k=>w=>{w.carry={kind:k}},clear=w=>{w.carry=null};
-  if(j.k==='water')return[{fn:tool('can')},{go:st},{wait:.9,anim:'water',slot:j.slot},{fn:clear}];
-  if(j.k==='treat')return[{fn:tool('spray')},{go:st},{wait:1,anim:'spray',slot:j.slot},{fn:clear}];
-  if(j.k==='fert')return[{fn:tool('sack')},{go:st},{wait:.8,anim:'fert',slot:j.slot},{fn:clear}];
-  if(j.k==='seed')return[{go:w.home},{wait:.35,face:Math.PI/2},{fn:tool('tray')},{go:st},{wait:.35,slot:j.slot},{fn:w=>{VS.hidden.delete(j.pid);w.carry=null}}];
-  if(j.k==='out')return[{go:st},{wait:.3,slot:j.slot},{fn:w=>{const g=VS.ghosts[j.slot];delete VS.ghosts[j.slot];w.carry=g?{kind:'plant',p:g}:null}},{go:j.dest==='van'?PT.load:j.dest==='bin'?PT.bin:PT.door},{wait:.25},{fn:w=>{w.carry=null;if(j.dest==='van'){VS.van.load++;VS.van.pending--}else if(j.dest==='door')VS.floats.push({x:PT.door.x,y:PT.door.y,z:50,t:0,txt:'Entregue',col:'#2f9e44'})}}];
-  return[];
-}
-function idle(w,dt){
-  if(w.role==='owner'){turn(w,-Math.PI/2,dt);return}
-  if(w.role==='vend'){
-    w.idleT-=dt;if(w.idleT>0)return;w.idleT=2+Math.random()*2;
-    const cs=VS.walkers.filter(c=>c.role==='cust'&&c.tslot!=null&&!c.buy);
-    const sl=cs.length?pickA(cs).tslot:R(0,S.slots-1);
-    w.script=[{go:stand(sl)},{wait:1.6,slot:sl}];return;
-  }
-  if(w.role!=='worker'&&w.role!=='staff'){w.done=true;return}
-  if(VS.jobs.length){w.script=jobScript(VS.jobs.shift(),w);return}
-  w.idleT-=dt;if(w.idleT>0)return;
-  w.idleT=2+Math.random()*4;
-  const occ=S.plants.filter(p=>!VS.hidden.has(p.id));
-  if(occ.length&&Math.random()<.55){const p=pickA(occ);w.script=[{go:stand(p.slot)},{wait:1.3,slot:p.slot}]}
-  else w.script=[{go:w.home},{wait:.5,face:w.home.face??Math.PI/2}];
-}
-function stepW(w,dt){
-  w.moving=false;const s=w.script[0];
-  if(!s){idle(w,dt);return}
-  if(s.go){if(!w.path)w.path=route(w,s.go);moveAlong(w,dt);if(!w.path.length){w.path=null;w.lane=s.go.lane;w.script.shift()}return}
-  if(s.queue){queueStep(w,dt);return}
-  if(s.wait!=null){
-    if(s.t==null)s.t=s.wait;s.t-=dt;w.anim=s.anim||null;w.bubble=s.bubble||null;
-    if(s.slot!=null){const P=slotPos(s.slot);turn(w,Math.atan2(P.y-w.y,P.x-w.x),dt);if(s.anim)emit(w,s.anim,P)}
-    if(s.face!=null)turn(w,s.face,dt);
-    if(s.t<=0){w.anim=null;w.bubble=null;w.script.shift()}
-    return;
-  }
-  if(s.fn){w.script.shift();s.fn(w)}
-}
-function queueStep(w,dt){
-  if(!w.inQ){VS.q.push(w);w.inQ=true;w.waitT=0;w.qx=null}
-  w.waitT+=dt;
-  const i=VS.q.indexOf(w),spot=LV1ON?P1(L1.pay+i*24,L1.FY,L1.pay+i*24):{x:85+i*20,y:QY,lane:QY};
-  if(w.qx!==spot.x){w.qx=spot.x;w.path=route(w,spot)}
-  if(w.path&&w.path.length){moveAlong(w,dt);if(!w.path.length)w.lane=spot.lane;return}
-  w.path=null;turn(w,Math.PI/2,dt);
-  if(i===0){VS.serve+=dt*(S.staff.caixa?2:1)/2.2;if(VS.serve>=1){VS.serve=0;VS.q.shift();w.inQ=false;w.script.shift();checkout(w)}}
-  else if(!S.staff.caixa&&w.waitT>14&&!w.gaveUp){w.gaveUp=true;w.buy=null;VS.q.splice(i,1);w.inQ=false;const p=w.carry&&w.carry.p;w.carry=null;w.script=[];if(p){const s=freeSlot();if(s>=0){S.plants.push(Object.assign(p,{slot:s}));S.v++}}leave(w,15,'angry','fila')}
-}
-function emit(w,k,P){
-  if(Math.random()>.55)return;
-  const fx=w.x+Math.cos(w.dir)*9,fy=w.y+Math.sin(w.dir)*9,fz=22,tz=24+14;
-  if(k==='water')VS.parts.push({x:fx,y:fy,z:fz,vx:(P.x-fx+R(-6,6))/.35,vy:(P.y-fy)/.35,vz:(tz-fz)/.35,life:.35,max:.35,col:'#3b9be0',r:1.7});
-  if(k==='spray')VS.parts.push({x:P.x+R(-8,8),y:P.y+R(-6,6),z:tz+R(-6,8),vx:R(-10,10),vy:R(-6,6),vz:R(-5,10),life:.6,max:.6,col:'rgba(225,248,235,.9)',r:3.5,grow:1});
-  if(k==='fert')VS.parts.push({x:P.x+R(-9,9),y:P.y+R(-6,6),z:58,vx:0,vy:0,vz:-70,life:.45,max:.45,col:'#7a5232',r:1.4});
-}
-/* ---------- customers ---------- */
-const best=sp=>S.plants.filter(p=>p.sp===sp&&!VS.hidden.has(p.id)).sort((a,b)=>b.h-a.h)[0];
-function storeScore(){if(!S.plants.length)return-10;const fill=S.plants.length/S.slots,avg=S.plants.reduce((a,p)=>a+p.h,0)/S.plants.length;return clamp(fill*8-3+(avg-75)/5,-10,10)}
-const faceOf=s=>s>=70?'happy':s<40?'angry':'ok';
-function rec(s){
-  s=clamp(s,0,100);S.sat=S.sat*.9+s*.1;S.today.satSum+=s;S.today.satN++;
-  if(s>=70){S.rep+=.35;if(Math.random()<.4)S.fans++}
-  else if(s<40){S.rep-=.4;if(S.fans>0&&Math.random()<.5)S.fans--}
-  S.rep=clamp(S.rep,0,100);
-}
-function leave(w,s,bub,why,slot){
-  rec(s);if(why)S.today[why]=(S.today[why]||0)+1;
-  w.script.push({wait:1.1,slot,bubble:bub},{wait:.6,bubble:faceOf(s)},{go:w.out});
-}
-function decide(w){
-  const here=S.plants.find(q=>q.slot===w.tslot&&q.sp===w.want&&!VS.hidden.has(q.id));
-  if(!here){const o=best(w.want);if(o&&w.tries<1){w.tries++;w.tslot=o.slot;w.script.push({go:stand(o.slot)},{fn:decide});return}return leave(w,42,{sp:w.want},'miss',w.tslot)}
-  const price=S.price[w.want],r=price/ref(w.want);
-  const pb=clamp(1.55-r,.03,.95)*(.45+.55*here.h/100)*(1+.12*S.staff.vend);
-  if(Math.random()<pb){
-    S.plants=S.plants.filter(q=>q!==here);S.v++;
-    w.carry={kind:'plant',p:{...here}};w.buy={price,r,h:here.h};
-    w.script.push({wait:.5,slot:here.slot,bubble:'heart'},{queue:1},{go:w.out});
-  }else if(r>1.12)leave(w,35-(r-1)*40,'price','caro',here.slot);
-  else if(here.h<60)leave(w,36,'meh','feia',here.slot);
-  else leave(w,56,'meh','olhar',here.slot);
-}
-function checkout(w){
-  const b=w.buy;if(!b||w.paid)return;w.paid=true;
-  S.money+=b.price;S.earned+=b.price;S.sold++;S.today.earn+=b.price;S.today.buy++;
-  VS.floats.push({...(LV1ON&&PT.payF?{x:PT.payF.x,y:PT.payF.y,z:22}:{x:85,y:392+FO,z:40}),t:0,txt:'+'+fmt(b.price),col:'#2f9e44'});
-  const s=62+(1-b.r)*80+(b.h-70)*.35-Math.max(0,(w.waitT||0)-5)*3+S.staff.vend*5+storeScore();
-  rec(s);w.script.unshift({wait:.6,bubble:faceOf(s)});
-}
-function spawnCustomer(){
-  if(VS.walkers.filter(w=>w.role==='cust').length>=11)return;
-  const left=Math.random()<.5,want=pickSp(),b=best(want);
-  const w=mkW({role:'cust',x:left?-24:424,y:LV1ON?PT.SYW:500+FO,lane:LV1ON?'S':500+FO,speed:78+R(0,22),look:{shirt:pickA(SHIRTS),hair:pickA(HAIR),skin:pickA(SKIN),pants:pickA(['#3d4a5c','#3d5a80','#4a3b2a','#2b2b2b'])}});
-  w.want=want;w.tslot=b?b.slot:R(0,S.slots-1);w.tries=0;w.out=Math.random()<.5?PT.L:PT.Rt;
-  w.script=[{go:stand(w.tslot)},{fn:decide}];
-  VS.walkers.push(w);S.today.cust++;
-}
-function spawnCourier(slot,pid,p,k){
-  const w=mkW({role:'courier',x:424+k*22,y:LV1ON?PT.SYW:500+FO,lane:LV1ON?'S':500+FO,speed:110,look:{shirt:'#8a5a2b',hair:'#1b1b1b',skin:pickA(SKIN),cap:'#5a3a1a'},carry:{kind:'plant',p}});
-  w.script=[{go:stand(slot)},{wait:.3,slot},{fn:w=>{VS.hidden.delete(pid);w.carry=null}},{go:PT.Rt}];
-  VS.walkers.push(w);
-}
-function flushJobs(){
-  VS.jobs=[];VS.hidden.clear();VS.ghosts={};VS.q=[];VS.serve=0;
-  VS.walkers=VS.walkers.filter(w=>w.role!=='courier'&&w.role!=='cust');
-  VS.walkers.forEach(w=>{if(w.home){w.script=[];w.path=null;w.carry=null;w.anim=null;w.bubble=null}});
-  Object.assign(VS.van,{load:0,pending:0,st:'park',x:0});
-}
-
-/* ---------- canvas drawing: tilted top-down view with height ---------- */
-let c,SPRV=0;
-const K=.72,OY=64,SW=400;let TBH=24;
-const ASSET={p1_bg:[800,875,'jpg'],p1_fenceL:[314,104],p1_fenceR:[312,102],p1_sign:[157,130],p1_pallet:[202,95],p1_crate:[156,94],p1_table:[218,145],p1_barrel:[110,142],p1_barrow:[235,134],p1_truck:[333,132],p1n_bg:[900,985,'jpg'],g2_bg:[900,985,'jpg'],g2w2_bg:[1672,941,'jpg'],table_wide2:[579,902]},AIMG={};
-function assetLoad(){Object.keys(ASSET).forEach(k=>{const im=new Image();im.onload=()=>{SPRV++};im.src='sprites/'+k+'.'+(ASSET[k][2]||'png');AIMG[k]=im})}
-const A=k=>{const im=AIMG[k];return im&&im.complete&&im.naturalWidth?im:null};
-function img(k,cx,bottom,w,flip){const im=A(k);if(!im)return;const[iw,ih]=ASSET[k],h=w*ih/iw;if(flip){c.save();c.translate(cx,0);c.scale(-1,1);c.drawImage(im,-w/2,bottom-h,w,h);c.restore()}else c.drawImage(im,cx-w/2,bottom-h,w,h)}
-const Y=(y,z=0)=>OY+y*K-z;
 const MIX=new Map();
 function mix(a,b,t){const k=a+b+t;if(MIX.has(k))return MIX.get(k);const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),A=p(a),B=p(b),r='#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('');MIX.set(k,r);return r}
+
 function E(x,y,rx,ry,r,f){c.beginPath();c.ellipse(x,y,rx,ry,r,0,TAU);c.fillStyle=f;c.fill()}
 function O(x,y,r,f){c.beginPath();c.arc(x,y,r,0,TAU);c.fillStyle=f;c.fill()}
 function RR(x,y,w,h,r,f){c.beginPath();if(c.roundRect)c.roundRect(x,y,w,h,r);else c.rect(x,y,w,h);c.fillStyle=f;c.fill()}
 function L(x1,y1,x2,y2,s,w){c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.strokeStyle=s;c.lineWidth=w;c.stroke()}
-function box(x,y,w,d,h,top,front,z0=0){RR(x,Y(y,z0+h),w,d*K,2,top);c.fillStyle=front;c.fillRect(x,Y(y+d,z0+h),w,h)}
-function cyl(x,y,r,h,top,side){E(x,Y(y),r,r*K,0,side);c.fillStyle=side;c.fillRect(x-r,Y(y,h),2*r,h);E(x,Y(y,h),r,r*K,0,top)}
-function rnd(seed){let s=seed;return()=>(s=s*16807%2147483647)/2147483647}
-const IMG=new Map();
-function sprite(sp,st,sick,pest,empty){
-  const b=empty?1:Math.round(Math.min(1,Math.max(0,st))*10)/10,k=empty?'empty':`${sp}|${b}|${sick?1:0}|${pest?1:0}`;
-  let im=IMG.get(k);
-  if(!im){im=new Image();im.onload=()=>{SPRV++};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(spr(sp,b,pest,sick,empty));IMG.set(k,im)}
-  return im.complete&&im.naturalWidth?im:null;
-}
+
+/* ---------- plants ---------- */
 const PLM={"petunia_0": [98, 104, 42.2, 87.0], "petunia_1": [110, 132, 52.0, 115.0], "petunia_2": [142, 153, 64.7, 135.0], "lavanda_0": [98, 111, 41.8, 93.0], "lavanda_1": [104, 138, 45.9, 120.0], "lavanda_2": [138, 161, 59.9, 143.0], "suculenta_0": [95, 102, 41.4, 84.5], "suculenta_1": [102, 128, 43.0, 110.5], "suculenta_2": [133, 142, 61.6, 123.5], "orquidea_0": [95, 106, 41.6, 87.5], "orquidea_1": [122, 131, 54.5, 113.0], "orquidea_2": [132, 169, 57.3, 150.5], "monstera_0": [94, 122, 38.4, 104.0], "monstera_1": [102, 145, 45.3, 127.0], "monstera_2": [138, 180, 57.8, 162.5], "oliveira_0": [92, 126, 38.6, 107.5], "oliveira_1": [106, 156, 53.6, 138.0], "oliveira_2": [140, 189, 61.3, 170.5], "vazio": [94, 100, 40.9, 83.5]};const PLI={};
-function plLoad(){Object.keys(PLM).forEach(k=>[k,k+'_s'].forEach(n=>{if(n==='vazio_s')return;const im=new Image();im.onload=()=>{SPRV++};im.src='sprites/pl_'+n+'.png';PLI[n]=im}))}
-function plImg(n){const im=PLI[n];return im&&im.complete&&im.naturalWidth?im:null}
-function plantAt2(p,x,base,rim,emptyPot){
-  const st=emptyPot?0:p.age/SP[p.sp].g,k=emptyPot?'vazio':p.sp+'_'+(st<.3?0:st<1?1:2),im=plImg(k+(!emptyPot&&p.h<45?'_s':''));if(!im)return false;
-  const[w,h,ax,ay]=PLM[k],f=rim/74;c.drawImage(im,x-ax*f,base-ay*f,w*f,h*f);return true}
-function plantAt(p,x,base,size){if(plantAt2(p,x,base,size*.46))return;const im=sprite(p.sp,p.age/SP[p.sp].g,p.h<45,p.pest);if(im)c.drawImage(im,x-size/2,base-size*.96,size,size)}
-function emptyPot(x,base,size){if(plantAt2(null,x,base,size*.46,true))return;const im=sprite('',1,false,false,true);if(im)c.drawImage(im,x-size/2,base-size*.96,size,size)}
-function icons(D,p,x,b){
-  if(p.w<25){const t=b-44;c.beginPath();c.moveTo(x+13,t-8);c.bezierCurveTo(x+19,t,x+19,t+4,x+13,t+4);c.bezierCurveTo(x+7,t+4,x+7,t,x+13,t-8);c.fillStyle='#2f8fd6';c.fill();c.strokeStyle='#fff';c.lineWidth=1.3;c.stroke()}
-  else if(D.role==='prod'&&mature(p)){O(x+13,b-42,5.2,'#2f9e44');c.beginPath();c.moveTo(x+10.4,b-42);c.lineTo(x+12.4,b-40);c.lineTo(x+15.6,b-44);c.strokeStyle='#fff';c.lineWidth=1.6;c.stroke()}
-  if(p.pest){O(x-13,b-42,5.2,'#d2452b');c.fillStyle='#fff';c.font='900 8px Nunito,sans-serif';c.textAlign='center';c.fillText('!',x-13,b-39)}
-}
+Object.keys(PLM).forEach(k=>{const im=new Image();im.src='sprites/pl_'+k+'.png';PLI[k]=im});
+function pAt(sp,stage,x,base,rim){const k=sp?sp+'_'+stage:'vazio',im=PLI[k];if(!im||!im.complete||!im.naturalWidth)return;const[w,h,ax,ay]=PLM[k],f=rim/74;c.drawImage(im,x-ax*f,base-ay*f,w*f,h*f)}
+function plantAt(p,x,base,size){const st=p.age>=99?2:(p.stage??2);pAt(p.sp,st,x,base,size*.46)}
 /* ---------- jardineiro: cut-out puppet from the user's drawings ---------- */
 const RIG_META={"front_head":[585,516],"front_torso":[351,447],"front_armL":[193,365],"front_armR":[190,365],"front_legL":[201,418],"front_legR":[204,416],"front_can":[519,360],"back_head":[554,532],"back_torso":[328,451],"back_armL":[196,368],"back_armR":[197,368],"back_legL":[205,421],"back_legR":[204,421],"side_head":[647,611],"side_torso":[355,549],"side_arm":[168,443],"side_leg":[272,508],"side_arm_dk":[168,443],"side_leg_dk":[272,508]};
 const RIG_IMG={};let RIG_OK=0;
@@ -530,11 +184,13 @@ function person(w){
   c.restore();
   if(w.label){c.font='800 11px Nunito,sans-serif';c.textAlign='center';c.lineWidth=3;c.strokeStyle='#fff';c.strokeText(w.label,w.x,Y(w.y)-50);c.fillStyle='#c92468';c.fillText(w.label,w.x,Y(w.y)-50)}
 }
+
 function bubble(w){
   const b=w.bubble;if(!b)return;const x=w.x,y=Y(w.y)-58;
   c.fillStyle='rgba(0,0,0,.15)';RR(x-15,y-10,32,22,8,'rgba(0,0,0,.15)');RR(x-16,y-12,32,22,8,'#fff');c.beginPath();c.moveTo(x-4,y+9);c.lineTo(x,y+15);c.lineTo(x+4,y+9);c.fillStyle='#fff';c.fill();
   c.font='800 11px Nunito,sans-serif';c.textAlign='center';c.textBaseline='middle';
   if(b==='heart'){c.fillStyle='#e0367a';c.beginPath();c.moveTo(x,y+5);c.bezierCurveTo(x-9,y-1,x-5,y-8,x,y-3);c.bezierCurveTo(x+5,y-8,x+9,y-1,x,y+5);c.fill()}
+  else if(b==='pay'){c.fillStyle='#2f7a2a';c.font='900 13px Nunito,sans-serif';c.fillText('€',x,y)}
   else if(b==='price'){c.fillStyle='#b8321c';c.fillText('€€?',x,y-1)}
   else if(b==='meh'){c.fillStyle='#4b6352';c.fillText('hmm',x,y-1)}
   else if(b==='alert'){O(x,y-1,8,'#d2452b');c.fillStyle='#fff';c.font='900 12px Nunito,sans-serif';c.fillText('!',x,y)}
@@ -542,625 +198,451 @@ function bubble(w){
   else if(b.sp){plantAt({sp:b.sp,age:99,h:100,w:100},x-5,y+8,18);c.fillStyle='#b8321c';c.fillText('?',x+9,y-1)}
   c.textBaseline='alphabetic';
 }
-function vehicle(x,y,body,load,label){
-  E(x+50,Y(y+34)+2,56,7,0,'rgba(0,0,0,.2)');
-  [x+20,x+80].forEach(wx=>{E(wx,Y(y+34)-2,8,6,0,'#222');E(wx,Y(y+34)-2,3.5,2.6,0,'#888')});
-  box(x,y,70,34,22,mix(body,'#000000',.1),mix(body,'#000000',.05),6);
-  RR(x+2,Y(y+2,28),66,30*K,2,mix(body,'#000000',.28));
-  for(let i=0;i<Math.min(load,8);i++)plantAt({sp:['petunia','lavanda','monstera','suculenta'][i%4],age:99,h:100,w:100},x+12+(i%4)*15,Y(y+12+(i/4|0)*12,28),20);
-  box(x+70,y,30,34,30,mix(body,'#ffffff',.15),body,6);RR(x+74,Y(y+34,30)+3,22,10,2,'#9fd0e6');
-  if(label){c.font='800 10px Nunito,sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText(label,x+35,Y(y+34,6)-6)}
-}
-function drawTable(t,role,lv1){
-  if(lv1){img('p1_pallet',t.x+TW/2,Y(t.y+TH)+5,TW+12);return}
-  const x=t.x,top=Y(t.y,TBH),fr=Y(t.y+TH,TBH);
-  if(role==='garden'){RR(x,top,TW,TH*K,3,'#c48d58');for(let k=top+7;k<fr-2;k+=7)L(x+3,k,x+TW-3,k,'#b07a48',1);L(x+2,top+1.2,x+TW-2,top+1.2,'#e0b080',2);c.fillStyle='#8f5f35';c.fillRect(x,fr,TW,7);c.fillStyle='#6e4626';c.fillRect(x+4,fr+7,5,TBH-7);c.fillRect(x+TW-9,fr+7,5,TBH-7)}
-  else{RR(x,top,TW,TH*K,2,'#bfcabb');for(let k=x+7;k<x+TW;k+=7)L(k,top+1,k,fr-1,'#a7b3a3',1);for(let k=top+6;k<fr;k+=6)L(x+1,k,x+TW-1,k,'#a7b3a3',1);c.strokeStyle='#72806f';c.lineWidth=2.5;c.strokeRect(x,top,TW,TH*K);c.fillStyle='#64725f';c.fillRect(x,fr,TW,5);c.fillStyle='#7d897a';[x+3,x+TW/2-1.5,x+TW-6].forEach(k=>c.fillRect(k,fr+5,3,TBH-5))}
-}
-function drawBG(D){
-  const G=D.role==='garden',r=rnd(7),fo=166*((D.rows||2)-2);
-  if(D.lv1){const L=lvsFor(D.role);c.fillStyle=D.role==='garden'?'#5a5f66':'#6fa83a';c.fillRect(-50,-50,SW+100,600);const im=A(L.img);if(im)c.drawImage(im,0,0,SW,L.H);
-    if(L.table){const ti=A(L.table.img);if(ti)for(let b=0;b<3;b++)if(b*8<D.slots){const[px,py]=L.table.at[b];c.drawImage(ti,px*L.s,py*L.s,L.table.w*L.table.scale*L.s,L.table.h*L.table.scale*L.s)}}
-    return}
-  else if(G){
-    c.save();c.translate(0,fo*K);c.fillStyle='#d6d1c7';c.fillRect(0,Y(476),SW,Y(522)-Y(476));for(let x=0;x<SW;x+=32)L(x,Y(476),x,Y(522),'#c4beb2',1);
-    c.fillStyle='#a9a399';c.fillRect(0,Y(522),SW,4);c.fillStyle='#5a5f66';c.fillRect(0,Y(522)+4,SW,SH);c.setLineDash([14,12]);L(0,Y(542),SW,Y(542),'#e8e2c8',2);c.setLineDash([]);RR(176,Y(440),48,22*K,3,'#8a6a4a');O(250,Y(404),14,'rgba(0,0,0,.1)');c.restore();
-    c.fillStyle='#efe5d3';c.fillRect(10,Y(10),380,Y(468+fo)-Y(10));for(let x=10;x<390;x+=38)L(x,Y(10),x,Y(468+fo),'#e2d5bf',1);for(let y=10;y<468+fo;y+=38)L(10,Y(y),390,Y(y),'#e2d5bf',1);
-    c.fillStyle='#93ad86';c.fillRect(0,Y(10,64),SW,64);c.fillStyle='#7f9a73';c.fillRect(0,Y(10,22),SW,22);c.fillStyle='#5d6b5f';c.fillRect(0,0,SW,Y(10,64));L(0,Y(10,22),SW,Y(10,22),'#6f8a64',2);
-    [[24,170],[230,376]].forEach(([a,b])=>[30,50].forEach(z=>{c.fillStyle='rgba(0,0,0,.15)';c.fillRect(a,Y(10,z)+1,b-a,4);c.fillStyle='#8a5d36';c.fillRect(a,Y(10,z)-3,b-a,4);for(let x=a+12;x<b;x+=24){const sp=KEYS[(x+z)%6];plantAt({sp,age:99,h:100,w:100},x,Y(10,z)-2,22)}}));
-    RR(158,Y(10,62),84,26,4,'#2f7a2a');c.font='700 13px Fredoka,Nunito,sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText('Vida de Garden',200,Y(10,62)+17);
-    c.fillStyle='#5d6b5f';c.fillRect(0,Y(10,64),10,Y(471+fo)-Y(10,64));c.fillRect(390,Y(10,64),10,Y(471+fo)-Y(10,64));
-  }else{
-    c.save();c.translate(0,fo*K);c.fillStyle='#8fbf73';c.fillRect(0,Y(476),SW,SH);c.fillStyle='#cdbf9c';c.fillRect(176,Y(476),48,SH);c.fillRect(176,Y(514),224,SH);
-    for(let i=0;i<70;i++)O(r()*400,Y(478+r()*82),1.4,'#7fae63');c.beginPath();c.moveTo(330,Y(422));c.bezierCurveTo(300,Y(436),290,Y(452),262,Y(452));c.strokeStyle='#2f7a2a';c.lineWidth=2.4;c.stroke();c.restore();
-    c.fillStyle='#ddd4bb';c.fillRect(10,Y(10),380,Y(468+fo)-Y(10));for(let i=0;i<300+fo;i++)O(12+r()*376,Y(12+r()*(454+fo)),1.1,'#c7bd9f');
-    c.fillStyle='#cfc9bc';c.fillRect(184,Y(10),32,Y(468+fo)-Y(10));
-    const g=c.createLinearGradient(0,Y(10,64),0,Y(10));g.addColorStop(0,'#bfe3f2');g.addColorStop(1,'#e3f4e6');c.fillStyle=g;c.fillRect(0,Y(10,64),SW,64);
-    [[40,26],[120,20],[210,28],[300,22],[370,26]].forEach(([x,rr])=>E(x,Y(10,8),rr*1.4,rr*.8,0,'rgba(110,160,100,.45)'));
-    for(let x=0;x<=SW;x+=40)L(x,Y(10,64),x,Y(10),'#f4f8f6',2.5);L(0,Y(10,32),SW,Y(10,32),'#f4f8f6',2);c.fillStyle='#e6eef0';c.fillRect(0,0,SW,Y(10,64));
-    c.fillStyle='rgba(190,228,240,.55)';c.fillRect(0,Y(10,64),8,Y(471+fo)-Y(10,64));c.fillRect(392,Y(10,64),8,Y(471+fo)-Y(10,64));
-    c.save();c.globalAlpha=.12;c.fillStyle='#fff';for(let x=-400;x<400;x+=70){c.beginPath();c.moveTo(x,Y(10));c.lineTo(x+26,Y(10));c.lineTo(x+26+330+fo,Y(468+fo));c.lineTo(x+330+fo,Y(468+fo));c.closePath();c.fill()}c.restore();
-  }
-  for(let t=0;t<2*(D.rows||2);t++){
-    const {x,y}=T[t];
-    if(t*6<D.slots){if(D.lv1){c.fillStyle='rgba(60,30,10,.22)';c.beginPath();c.ellipse(x+TW/2,Y(y+TH)+2,TW*.55,10,0,0,TAU);c.fill()}else{c.fillStyle='rgba(0,0,0,.2)';c.fillRect(x+2,Y(y+TH)-TBH+6,TW-4,TBH-6);c.fillStyle='rgba(0,0,0,.12)';c.fillRect(x+3,Y(y+TH),TW,5)}}
-    else{c.setLineDash([6,5]);c.strokeStyle='rgba(90,80,60,.4)';c.lineWidth=2;c.strokeRect(x,Y(y),TW,TH*K);c.setLineDash([]);c.font='800 12px Nunito,sans-serif';c.textAlign='center';c.fillStyle='rgba(90,80,60,.65)';c.fillText(G?'+6 lugares':'+6 vasos',x+TW/2,Y(y+TH/2)+4)}
-  }
-}
-function statics(D,items){
-  const G=D.role==='garden',dw=24*D.door,fo=166*((D.rows||2)-2),push=items.push.bind(items);
-  items={push:o=>push(o.k===24?o:{k:o.k+fo,f:()=>{c.save();c.translate(0,fo*K);o.f();c.restore()}})};
-  if(D.lv1){
-    items.push({k:392,f:()=>img('p1_table',86,Y(414),118)});
-    items.push({k:420,f:()=>img('p1_barrel',352,Y(410),44)});
-    items.push({k:414,f:()=>img('p1_barrow',262,Y(404),70)});
-    items.push({k:352,f:()=>{img('p1_crate',46,Y(352),42);img('p1_crate',46,Y(352)-21,40)}});
-    items.push({k:471,f:()=>{img('p1_fenceL',90,Y(466),204);img('p1_fenceR',310,Y(466),204)}});
-    items.push({k:494,f:()=>{img('p1_sign',268,Y(498),58);c.font='900 9px Fredoka,Nunito,sans-serif';c.textAlign='center';c.fillStyle=D.open===false?'#6b3d1a':'#2f6b1f';c.fillText(D.open===false?'FECHADO':'ABERTO',266,Y(498)-33)}});
-    items.push({k:520,f:()=>{const x=340+D.van.x,b=Y(556);img('p1_truck',x,b,124,true);for(let i=0;i<Math.min(D.van.load,6);i++)plantAt({sp:['petunia','lavanda','monstera','suculenta'][i%4],age:99,h:100,w:100},x-44+(i%3)*14,b-26-(i/3|0)*4,18)}});
-    return;
-  }
-  if(G){
-    items.push({k:392,f:()=>{box(30,392,110,26,34,'#a5764f','#7b5539');c.strokeStyle='rgba(0,0,0,.18)';c.lineWidth=1;for(let x=40;x<140;x+=25)c.strokeRect(x,Y(418,30),20,24);box(100,395,24,13,10,'#4a5056','#33383c',34);RR(104,Y(395,48),16,6,1,'#9fd3a8');box(42,398,18,12,3,'#efe4cc','#d9cdb2',34)}});
-    items.push({k:398,f:()=>[[282,398],[304,404],[326,398]].forEach(([x,y])=>{box(x,y,18,12,24,'#a7835a','#8b6b45');RR(x+3,Y(y+12,18),12,8,2,'#d9c49a')})});
-    items.push({k:404,f:()=>{cyl(250,404,11,22,'#3d7a4c','#2f5d3a');E(250,Y(404,22),7,4,0,'#2b4f33')}});
-    items.push({k:424,f:()=>{cyl(368,424,12,12,'#3a8a33','#2f7a2a');E(368,Y(424,12),5,3,0,'#efe5d3')}});
-    items.push({k:24,f:()=>{plantAt({sp:'monstera',age:99,h:100,w:100},28,Y(24),62);plantAt({sp:'oliveira',age:99,h:100,w:100},372,Y(24),66)}});
-    items.push({k:471,f:()=>{
-      box(5,466,167,10,16,'#6b7a6e','#4f5d52');box(228,466,167,10,16,'#6b7a6e','#4f5d52');
-      c.fillStyle='rgba(190,228,240,.26)';c.fillRect(5,Y(471,48),167,32);c.fillRect(228,Y(471,48),167,32);
-      [5,47,89,131,172,228,270,312,354,395].forEach(x=>L(x,Y(471,48),x,Y(471,16),'#4f5d52',2));L(5,Y(471,48),172,Y(471,48),'#4f5d52',3);L(228,Y(471,48),395,Y(471,48),'#4f5d52',3);
-      c.fillStyle='rgba(190,228,240,.38)';c.fillRect(176-dw,Y(471,48),24,48);c.fillRect(200+dw,Y(471,48),24,48);c.strokeStyle='#4f5d52';c.lineWidth=1.5;c.strokeRect(176-dw,Y(471,48),24,48);c.strokeRect(200+dw,Y(471,48),24,48);
-      RR(150,Y(471,58),100,13,3,D.open===false?'#5d6b5f':'#c92468');c.font='800 9px Nunito,sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText(D.open===false?'FECHADO':'ABERTO',200,Y(471,58)+9.5);
-    }});
-    if(D.svan>0){const k=Math.min(1,D.svan*2);items.push({k:524,f:()=>vehicle(420-130*k,524,'#3f7d4e',0,'Fornecedor')})}
-  }else{
-    items.push({k:392,f:()=>{box(30,392,110,44,24,'#b08a5e','#8a6644');E(58,Y(410,24),20,9,0,'#5a3e2b');E(56,Y(408,27),12,5,0,'#6b4a33');RR(82,Y(398,25),24,14*K,2,'#2c2c2c');[88,94,100].forEach(x=>[402,408].forEach(y=>O(x,Y(y,26),1.7,'#6fbf4a')));[[120,400],[128,412],[116,422]].forEach(([x,y])=>emptyPot(x,Y(y,24),18))}});
-    items.push({k:420,f:()=>{cyl(348,420,20,44,'#5aa0d0','#3f86b8');E(348,Y(420,44),15,10,0,'#4a92c4');c.fillStyle='rgba(255,255,255,.25)';c.fillRect(332,Y(420,40),5,34)}});
-    items.push({k:414,f:()=>{cyl(255,414,12,20,'#5a4632','#4d3b2a');[[251,411],[258,416]].forEach(([x,y])=>O(x,Y(y,20),2,'#6b8f3a'))}});
-    items.push({k:471,f:()=>{
-      c.fillStyle='rgba(200,235,245,.3)';c.fillRect(7,Y(471,44),165,44);c.fillRect(228,Y(471,44),165,44);
-      for(let x=7;x<=172;x+=41)L(x,Y(471,44),x,Y(471),'#f4f8f6',2.5);for(let x=228;x<=393;x+=41)L(x,Y(471,44),x,Y(471),'#f4f8f6',2.5);
-      L(7,Y(471,44),172,Y(471,44),'#f4f8f6',3);L(228,Y(471,44),393,Y(471,44),'#f4f8f6',3);L(7,Y(471,8),172,Y(471,8),'#f4f8f6',2);L(228,Y(471,8),393,Y(471,8),'#f4f8f6',2);
-      c.fillStyle='rgba(200,235,245,.4)';c.fillRect(176-dw,Y(471,44),24,44);c.fillRect(200+dw,Y(471,44),24,44);c.strokeStyle='#f4f8f6';c.lineWidth=2;c.strokeRect(176-dw,Y(471,44),24,44);c.strokeRect(200+dw,Y(471,44),24,44);
-    }});
-    items.push({k:520,f:()=>vehicle(285+D.van.x,520,'#f3f1ea',D.van.load,'')});
-  }
-}
-function drawWorld(cv,D){
-  TBH=D.lv1?0:24;if(D.lv1)L1=lvsFor(D.role);
-  const v=D.view||{x:0,y:0,w:SW},pw=cv.width,s=pw/v.w,sh=SH,key=D.role+D.slots+'|'+(D.rows||2)+'|'+s.toFixed(3)+'|'+SPRV;
-  if(cv._k!==key){const b=document.createElement('canvas');b.width=Math.ceil(SW*s);b.height=Math.ceil(sh*s);c=b.getContext('2d');c.setTransform(s,0,0,s,0,0);drawBG(D);cv._bg=b;cv._k=key}
-  c=cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.fillStyle=D.role==='garden'?'#2f3b33':'#5e8a4c';c.fillRect(0,0,pw,cv.height);c.drawImage(cv._bg,Math.round(-v.x*s),Math.round(-v.y*s));c.setTransform(s,0,0,s,-v.x*s,-v.y*s);
-  const items=[];
-  if(D.lv1){
-    const s=L1.s;
-    for(let i=0;i<24;i++){const q=lv1Pot(i),v=D.vis[i],locked=i>=D.slots;if(locked)continue;items.push({k:(q.sy-64)/.72,f:()=>{
-      if(D.sel===i){c.beginPath();c.ellipse(q.sx,q.sy,q.rim*.75,q.rim*.32,0,0,TAU);c.strokeStyle='#c92468';c.lineWidth=2.5;c.stroke()}
-      if(v){plantAt2(v.p,q.sx,q.sy,q.rim)||plantAt(v.p,q.sx,q.sy,q.rim/.46);if(!v.g&&!D.view)icons(D,v.p,q.sx,q.sy+6)}else if(D.role==='prod'){c.globalAlpha=.85;emptyPot(q.sx,q.sy,q.rim/.46);c.globalAlpha=1}else{c.beginPath();c.ellipse(q.sx,q.sy-2,q.rim*.45,q.rim*.18,0,0,TAU);c.fillStyle='rgba(90,50,20,.18)';c.fill()}}})}
-    for(let b=0;b<3;b++)if(!L1.table&&b*8>=D.slots){const[bl,br,fl,fr,by,fy]=L1.B[b];items.push({k:0,f:()=>{c.beginPath();c.moveTo(bl*s,by*s);c.lineTo(br*s,by*s);c.lineTo(fr*s,fy*s);c.lineTo(fl*s,fy*s);c.closePath();c.fillStyle='rgba(40,25,10,.38)';c.fill();c.font='800 13px Nunito,sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText('+8 vasos',(bl+br+fl+fr)/4*s,(by+fy)/2*s);c.font='700 11px Nunito,sans-serif';c.fillText('em Obras',(bl+br+fl+fr)/4*s,(by+fy)/2*s+15)}})}
-    items.push({k:9999,f:()=>{c.font='900 11px Fredoka,Nunito,sans-serif';c.textAlign='center';c.fillStyle=D.open===false?'#6b3d1a':'#2f5a14';c.fillText(D.open===false?'FECHADO':'ABERTO',L1.sign[0]*s,L1.sign[1]*s);
-      if(D.role==='prod'&&D.van&&D.van.x===0)for(let i=0;i<Math.min(D.van.load,5);i++)plantAt2({sp:['petunia','lavanda','monstera','suculenta','orquidea'][i],age:99,h:100},(1020+i*34)*s,1010*s,11)}});
-    D.walkers.forEach(w=>items.push({k:w.y,f:()=>person(w)}));
-    items.sort((a,b)=>a.k-b.k).forEach(it=>it.f());
-  }else{
-  statics(D,items);
-  for(let t=0;t<2*(D.rows||2);t++)if(t*6<D.slots)items.push({k:T[t].y,f:()=>drawTable(T[t],D.role,D.lv1)});
-  for(let i=0;i<D.slots;i++){const P=slotPos(i),v=D.vis[i],b=Y(P.y,TBH);items.push({k:P.y,f:()=>{
-    if(D.sel===i){c.beginPath();c.ellipse(P.x,b,18,8,0,0,TAU);c.strokeStyle='#c92468';c.lineWidth=2.5;c.stroke()}
-    if(v){plantAt(v.p,P.x,b,50);if(!v.g)icons(D,v.p,P.x,b)}
-    else if(D.role==='prod')emptyPot(P.x,b,40);
-    else{c.setLineDash([3,3]);c.beginPath();c.ellipse(P.x,b-2,12,5,0,0,TAU);c.strokeStyle='rgba(90,60,30,.35)';c.lineWidth=1.5;c.stroke();c.setLineDash([])}
-  }})}
-  D.walkers.forEach(w=>items.push({k:w.y,f:()=>person(w)}));
-  items.sort((a,b)=>a.k-b.k).forEach(it=>it.f());
-  }
-  D.parts.forEach(p=>{c.globalAlpha=Math.max(0,p.life/p.max);O(p.x,Y(p.y,p.z),p.r*(p.grow?1+(1-p.life/p.max)*1.5:1),p.col)});c.globalAlpha=1;
-  D.walkers.forEach(bubble);
-  D.floats.forEach(f=>{const y=Y(f.y,f.z)-f.t*22;c.globalAlpha=Math.max(0,1-f.t/1.4);c.font='800 14px Nunito,sans-serif';c.textAlign='center';c.lineWidth=3;c.strokeStyle='#fff';c.strokeText(f.txt,f.x,y);c.fillStyle=f.col;c.fillText(f.txt,f.x,y)});c.globalAlpha=1;
-  if(D.night>0){c.fillStyle=`rgba(12,22,58,${.62*D.night})`;c.fillRect(-3000,-3000,7000,7000);c.globalAlpha=D.night;if(D.night>.5){O(340,40,18,'#f5f1d0');O(333,35,16,'rgba(12,22,58,.9)')}[[60,30],[120,60],[250,20],[300,110],[90,150],[200,90]].forEach(([x,y])=>O(x,y,1.5,'#fff'));c.globalAlpha=1;const fo=166*((D.rows||2)-2);if(D.role==='garden'){c.globalCompositeOperation='lighter';[60,200,340].forEach(x=>{const g=c.createRadialGradient(x,Y(492+fo),2,x,Y(492+fo),70);g.addColorStop(0,`rgba(255,210,130,${.45*D.night})`);g.addColorStop(1,'rgba(255,210,130,0)');c.fillStyle=g;c.fillRect(x-70,Y(492+fo)-70,140,140)});c.globalCompositeOperation='source-over'}}
-}
-function stateWorld(){
-  const vis=[];
-  for(let i=0;i<S.slots;i++){const g=VS.ghosts[i];if(g){vis[i]={p:g,g:1};continue}const p=S.plants.find(q=>q.slot===i&&!VS.hidden.has(q.id));vis[i]=p?{p}:null}
-  let sel=null;if(UI.sheet){if(UI.sheet.t==='plant'){const p=P(UI.sheet.id);if(p)sel=p.slot}else if(UI.sheet.slot!=null)sel=UI.sheet.slot}
-  return{role:S.role,slots:S.slots,rows:S.rows,vis,walkers:VS.walkers,door:VS.door,van:VS.van,svan:VS.svan,parts:VS.parts,floats:VS.floats,night:VS.night,sel,open:isOpen(),lv1:S.rows===2};
-}
-function fitCanvas(cv,ratio){const r=cv.clientWidth;if(!r)return false;const d=Math.min(2,devicePixelRatio||1),pw=Math.round(r*d),ph=Math.round(r*ratio*d);if(cv.width!==pw||cv.height!==ph){cv.width=pw;cv.height=ph;cv._k=''}return true}
-/* ================= simulation on the real clock ================= */
-const NAMES={jard:['Ana','Rui','Bia'],caixa:['Sara'],vend:['Leo','Mia'],trab:['Zé','Tó','Lu','Gabi','Nando'],com:['Paulo','Inês']};
-const nm=(k,i=0)=>NAMES[k][i]||NAMES[k][0];
-const realT=()=>(Date.now()-S.base)/3.6e6;
-const isOpen=(h=hour())=>S.role==='garden'?h>=S.open&&h<S.close:h>=8&&h<18;
-const onShift=(h=hour())=>S.role==='garden'?h>=S.open-.5&&h<S.close+.5:h>=7.5&&h<18.5;
-const plural=sp=>SP[sp].n+'s';
-const hh=h=>String(Math.floor(h)).padStart(2,'0')+':'+String(Math.round((h%1)*60)).padStart(2,'0');
-const dur=h=>h<1?Math.round(h*60)+' min':h<24?Math.round(h)+' h':Math.floor(h/24)+(Math.floor(h/24)>1?' dias':' dia')+(Math.round(h%24)?' e '+Math.round(h%24)+' h':'');
-function lamAt(h){
-  if(!isOpen(h))return 0;if(window.FAST)return 900;
-  const hf=h<10?.7:h<13?1.2:h<15?.85:h<17?1:1.25;
-  return(3+S.fans*.25*(S.upg.fid?1.6:1)+(S.upg.mkt?2:0))*hf*[1.15,1.1,1,.8][se()]*(.7+S.rep/170);
-}
-function notify(key,who,msg,lvl,a,arg){
-  const last=S.akeys[key];if(last!=null&&S.t-last<6)return;S.akeys[key]=S.t;
-  S.alerts.unshift({id:S.nid++,t:S.t,who,msg,lvl:lvl||'',a,arg});S.alerts=S.alerts.slice(0,40);S.unread++;
-  if(VS.live){say(`${who}: ${msg}`);const st=VS.walkers.find(w=>w.home&&!w.bubble&&!w.script.length);if(st){st.script=[{wait:4,bubble:'alert'}]}}
-}
-function autoCare(live){
-  const G=S.role==='garden',who=G?nm('jard'):nm('trab');
-  if(G?S.staff.jard<1:S.staff.trab<1)return;
-  S.plants.forEach(p=>{
-    if(VS.hidden.has(p.id))return;
-    if(p.w<30){p.w=Math.min(100,p.w+45);if(live)VS.jobs.push({k:'water',slot:p.slot})}
-    if(p.pest){if(S.money>=2){S.money-=2;p.pest=false;if(live)VS.jobs.push({k:'treat',slot:p.slot});notify('tr'+p.id,who,`Apareceu praga na ${SP[p.sp].n}. Já tratei (−€2).`,'')}
-      else notify('np'+p.id,who,`Há praga na ${SP[p.sp].n} e não temos €2 para o tratamento.`,'r','tab','bank')}
-  });
-}
-function prodOrders(dtH){
-  const h=hour();if(h<8||h>=18)return;
-  S.pacc+=dtH*(.25+S.rep/300+S.staff.com*.2)*[1.1,1.1,1,.9][se()];
-  const who=S.staff.com?nm('com'):nm('trab');
-  while(S.pacc>=1){
-    S.pacc--;
-    const sp=pickSp(),r=S.price[sp]/ref(sp),g=pickA(BUYERS),pa=clamp(1.5-r,.05,.95)*(.6+S.rep/125);
-    if(Math.random()<pa){
-      const big=['orquidea','oliveira','monstera'].includes(sp),o={id:S.nid++,who:g,sp,qty:big?R(1,2):R(2,4),price:S.price[sp],due:Math.round(S.t)+R(2,4)*24};
-      S.orders.push(o);S.today.got++;S.v++;notify('o'+o.id,who,`Novo pedido: ${g} quer ${o.qty} ${SP[sp].n} até ${left(o).replace('faltam ','daqui a ')}.`,'g','tab','orders');
-    }else{S.today.lost++;notify('c'+sp,who,`${g} queria ${plural(sp)} mas achou o nosso preço caro.`,'w','tab','price')}
-  }
-}
-function sim(dtH,night,live){
-  const d0=dayN(),G=S.role==='garden';S.t+=dtH;
-  const dm=[1,1.4,.9,.7][se()]*(G?.8:1)*(night?.5:1),who=G?nm('jard'):nm('trab');
-  S.plants.forEach(p=>{
-    p.w-=SP[p.sp].dry*dm*dtH/24;
-    if(p.w<=0){p.w=0;p.h-=25*dtH/24}
-    if(!G&&p.w>0&&p.h>30&&!mature(p)){p.age+=dtH/24*(p.f>0?2:1);if(mature(p)){S.today.ready.push(SP[p.sp].n);S.v++}}
-    p.f=Math.max(0,(p.f||0)-dtH);
-    if(p.pest)p.h-=15*dtH/24;else if(Math.random()<.07*dtH/24*(S.upg.bio?.5:1)){p.pest=true;S.today.pests++}
-    if(p.w>=30&&!p.pest)p.h=Math.min(100,p.h+4*dtH/24);
-  });
-  const dead=S.plants.filter(p=>p.h<=0);
-  if(dead.length){S.plants=S.plants.filter(p=>p.h>0);dead.forEach(p=>{S.today.lines.push(['r',`Morreu: ${SP[p.sp].n}`]);notify('d'+p.id,who,`A ${SP[p.sp].n} morreu.${p.w<=0?' Ficou sem água durante a noite.':''}`,'r')});S.v++}
-  if(onShift())autoCare(live);
-  if(!G){
-    prodOrders(dtH);
-    const gone=S.orders.filter(o=>S.t>o.due+24);
-    gone.forEach(o=>{S.rep=clamp(S.rep-8,0,100);S.ot.n++;S.today.lines.push(['r',`${o.who} cancelou o pedido por atraso (reputação −8)`]);notify('x'+o.id,nm('trab'),`${o.who} cancelou o pedido por atraso.`,'r')});
-    if(gone.length){S.orders=S.orders.filter(o=>!gone.includes(o));S.v++}
-  }
-  if(dayN()>d0)rollover(d0);
-}
-function rollover(d0){
-  const G=S.role==='garden',s0=Math.floor((d0-1)/8)%4,cost=(G?15:8)+wages();
-  S.money-=cost;S.today.lines.push(['',`Meia-noite do dia ${d0}: ${G?'renda':'luz e água'} e salários −${fmt(cost)}`]);
-  payLoans();refreshSupply();
-  if(se()!==s0){S.today.lines.push(['g',`Começou o ${SEAS[se()]}: a procura de cada planta mudou`]);notify('s'+dayN(),G?nm('jard'):nm('trab'),`Começou o ${SEAS[se()]}. Agora vendem mais: ${KEYS.filter(k=>sm(k)>=1.2).map(plural).join(', ')||'tudo igual'}.`,'g','tab','price')}
-  if(G){
-    S.orders.filter(o=>o.due<dayN()).forEach(o=>{S.rep=clamp(S.rep-5,0,100);S.today.lines.push(['r',`Encomenda de ${o.who} expirou (reputação −5)`])});
-    S.orders=S.orders.filter(o=>o.due>=dayN());
-    for(let i=0;i<2&&S.orders.length<3;i++)if(Math.random()<.6){const sp=pickSp(),big=['orquidea','oliveira','monstera'].includes(sp),o={id:S.nid++,who:pickA(CLIENTS),sp,qty:big?R(1,2):R(2,3),price:Math.round(ref(sp)*1.3),due:dayN()+R(2,4)};S.orders.push(o);notify('e'+o.id,S.staff.vend?nm('vend'):nm('jard'),`Nova encomenda: ${o.who} quer ${o.qty} ${SP[sp].n} até ao dia ${o.due}.`,'g','tab','orders')}
-  }
-  S.money=Math.round(S.money);S.v++;
-}
-function refreshSupply(){S.sf={};KEYS.forEach(k=>S.sf[k]=.9+Math.random()*.2)}
-function checkAlerts(){
-  if(!onShift())return;
-  const G=S.role==='garden',who=G?nm('jard'):nm('trab'),cnt=k=>S.plants.filter(p=>p.sp===k).length,free=S.slots-S.plants.length;
-  if(G){
-    KEYS.forEach(k=>{if(!cnt(k)&&sm(k)>=1)notify('out'+k,S.staff.vend?nm('vend'):who,`Acabaram as ${plural(k)}. Os clientes estão a perguntar por elas.`,'w','tab','forn')});
-    if(free>=4)notify('empty',who,`Temos ${free} lugares vazios nas mesas.`,'w','tab','forn');
-    if(S.today.caro>=5)notify('caro',S.staff.vend?nm('vend'):who,'Muitos clientes acham os nossos preços caros.','w','tab','price');
-    S.orders.forEach(o=>{const miss=o.qty-ready(o.sp).length;if(o.due<=dayN()&&miss>0)notify('enc'+o.id,who,`A encomenda de ${o.who} é para hoje e faltam ${miss} ${SP[o.sp].n}.`,'r','tab','forn')});
-  }else{
-    if(free>=3)notify('empty',who,`Há ${free} vasos vazios na estufa. Toca num para semear.`,'w');
-    S.orders.forEach(o=>{const have=ready(o.sp).length;if(have>=o.qty&&!S.auto.deliver)notify('rd'+o.id,who,`O pedido de ${o.who} está pronto para entregar.`,'g','tab','orders');else if(have<o.qty&&o.due-S.t<24)notify('rk'+o.id,who,`O pedido de ${o.who} acaba em menos de 24 h e faltam ${o.qty-have} ${SP[o.sp].n}.`,'r','tab','orders')});
-  }
-  S.plants.filter(p=>p.h<45).forEach(p=>notify('sk'+p.id,who,`A ${SP[p.sp].n} está fraca (${Math.round(p.h)}% de saúde). Vê se vale a pena deitar fora.`,'w','tile',String(p.id)));
-  const inst=S.bank.loans.reduce((a,l)=>a+Math.min(l.inst,l.left),0);
-  if(inst&&S.money<inst&&hour()>=16)notify('loan','Banco',`À meia-noite é cobrada a prestação de ${fmt(inst)} e o caixa não chega.`,'r','tab','bank');
-  if(S.money<30)notify('cash',who,`Estamos quase sem dinheiro (${fmt(S.money)}).`,'r','tab','bank');
-}
-function restock(live){
-  if(S.role!=='garden'||!S.auto.restock||!isOpen())return;
-  const tot=KEYS.reduce((a,k)=>a+sm(k),0);let n=0;
-  while(n<8){
-    const s=freeSlot();if(s<0)break;
-    const sp=KEYS.map(k=>[k,sm(k)/tot*S.slots-S.plants.filter(p=>p.sp===k).length]).sort((a,b)=>b[1]-a[1])[0][0];
-    const c=supCost(S.auto.sup,sp);if(S.money-c<S.auto.reserve)break;
-    S.money-=c;const q=SUP[S.auto.sup].q,np=plant(sp,SP[sp].g,60,R(q[0],q[1]),false,s,c);S.plants.push(np);
-    if(live){VS.hidden.add(np.id);spawnCourier(s,np.id,{...np},n)}n++;
-  }
-  if(n){S.v++;notify('rs'+Math.floor(S.t),nm('jard'),`Faltavam plantas. Encomendei ${n} ao fornecedor (${SUP[S.auto.sup].n}).`,'')}
-}
-function removePlant(p,dest,live){
-  S.plants=S.plants.filter(q=>q!==p);VS.hidden.delete(p.id);
-  if(live){VS.ghosts[p.slot]={...p};VS.jobs.push({k:'out',slot:p.slot,dest});if(dest==='van')VS.van.pending++}
-  if(S.role==='prod'&&S.auto.resow&&dest!=='bin'&&S.money>=SP[p.sp].seed){S.money-=SP[p.sp].seed;const np=plant(p.sp,0,60,100,false,p.slot,SP[p.sp].seed);S.plants.push(np);if(live){VS.hidden.add(np.id);VS.jobs.push({k:'seed',slot:p.slot,pid:np.id})}}
-  S.v++;
-}
-function deliverOrder(o,live){
-  const G=S.role==='garden',st=ready(o.sp);if(st.length<o.qty)return false;
-  st.slice(0,o.qty).forEach(q=>removePlant(q,G?'door':'van',live));let v=o.price*o.qty;
-  if(G)S.rep=clamp(S.rep+4,0,100);
-  else{const late=S.t>o.due,early=o.due-S.t>=24;if(late)v=Math.round(v*.7);S.rep=clamp(S.rep+(late?-4:early?5:3),0,100);S.ot.n++;if(!late)S.ot.ok++;S.today.del++;if(late)S.today.late++}
-  S.money+=v;S.earned+=v;S.sold+=o.qty;S.orders=S.orders.filter(x=>x!==o);S.v++;return v;
-}
-function autoDeliver(live){S.orders.slice().forEach(o=>{const v=deliverOrder(o,live);if(v)notify('dl'+o.id,nm('trab'),`Entreguei o pedido de ${o.who}: +${fmt(v)}.`,'g')})}
-function instantCustomer(){
-  S.today.cust++;const want=pickSp(),here=best(want);
-  if(!here){rec(42);S.today.miss++;return}
-  const price=S.price[want],r=price/ref(want),pb=clamp(1.55-r,.03,.95)*(.45+.55*here.h/100)*(1+.12*S.staff.vend);
-  if(Math.random()<pb){S.plants=S.plants.filter(q=>q!==here);S.money+=price;S.earned+=price;S.sold++;S.today.earn+=price;S.today.buy++;rec(62+(1-r)*80+(here.h-70)*.35+S.staff.vend*5+storeScore());S.v++}
-  else if(r>1.12){rec(35-(r-1)*40);S.today.caro++}else if(here.h<60){rec(36);S.today.feia++}else{rec(56);S.today.olhar=(S.today.olhar||0)+1}
-}
-function stepWorld(dtH,live){
-  const wasOpen=isOpen(),wasShift=onShift();
-  sim(dtH,!onShift(),live);
-  if(!live&&S.role==='garden'){S.cacc+=lamAt(hour())*dtH;while(S.cacc>=1){S.cacc--;instantCustomer()}}
-  S.chkT+=dtH;if(S.chkT>=.5){S.chkT=0;checkAlerts();restock(live);if(S.role==='prod'&&S.auto.deliver)autoDeliver(live)}
-  if(live){
-    if(wasShift!==onShift())shiftChange(onShift());
-    if(wasOpen!==isOpen())openChange(isOpen());
-  }
-}
-function shiftChange(on){
-  if(on){setupWalkers(true)}
-  else VS.walkers.forEach(w=>{if(w.home||w.role==='owner'){w.home=null;w.role='leaving';w.carry=null;w.lane=w.lane<0?(LV1ON?L1.C[0]*L1.s:QY):w.lane;if(!LV1ON&&w.y>QY){w.y=QY}w.script=[{go:PT.door},{go:Math.random()<.5?PT.L:PT.Rt}]}});
-}
-function openChange(open){
-  const G=S.role==='garden';
-  if(open){say(G?`A loja abriu. Fecha às ${hh(S.close)}.`:'Começou o dia de trabalho. Os gardens já podem fazer pedidos.');return}
-  VS.walkers.filter(w=>w.role==='cust').forEach(w=>{if(w.buy&&!w.paid)checkout(w);if(w.inQ){VS.q=VS.q.filter(x=>x!==w);w.inQ=false}w.script=[{go:w.out}]});
-  S.report={title:G?`A loja fechou · dia ${dayN()}`:`Fim do dia de trabalho · dia ${dayN()}`,lines:reportLines()};S.today=newToday();save();draw();
-}
-function catchUp(){
-  const target=realT();let gap=target-S.t;if(gap<=0)return;
-  const max=24*14;if(gap>max){S.t=target-max;gap=max}
-  VS.live=false;
-  while(S.t<target-1e-6)stepWorld(Math.min(.25,target-S.t),false);
-  S.t=target;VS.live=true;
-  if(gap>=1){S.report={title:`Enquanto estiveste fora (${dur(gap)})`,lines:reportLines()};S.today=newToday()}
-  flushJobs();VS.walkers=VS.walkers.filter(w=>w.role==='ped');setupWalkers();save();
-}
-function reportLines(){
-  const t=S.today,G=S.role==='garden',L=[];
-  if(G){
-    L.push(['g',`${t.cust} clientes entraram · ${t.buy} compraram · +${fmt(t.earn)}`]);
-    if(t.satN){const a=Math.round(t.satSum/t.satN);L.push([a>=60?'g':'r',`Satisfação média: ${a}% (${a>=70?'clientes contentes':a>=50?'razoável':'muitos saíram descontentes'})`])}
-    if(t.miss)L.push(['r',`${t.miss} procuraram plantas que não tinhas`]);
-    if(t.caro)L.push(['r',`${t.caro} acharam caro e não compraram`]);
-    if(t.feia)L.push(['',`${t.feia} não gostaram do aspeto da planta`]);
-    if(t.olhar)L.push(['',`${t.olhar} só estavam a ver`]);
-    if(t.fila)L.push(['r',`${t.fila} desistiram da fila do balcão`]);
-    L.push(['',`${S.fans} clientes fiéis · movimento à hora de almoço ~${lamAt(12).toFixed(1)} clientes/hora`]);
-  }else{
-    L.push(['g',`Pedidos recebidos: ${t.got} · recusados pelo preço: ${t.lost}`]);
-    if(t.del)L.push([t.late?'r':'g',`Entregas: ${t.del}${t.late?` (${t.late} com atraso)`:' todas a tempo'}`]);
-    if(t.ready.length)L.push(['g','Ficaram prontas: '+t.ready.join(', ')]);
-  }
-  if(t.pests)L.push(['r',`Apareceram ${t.pests} pragas`]);
-  return L.concat(t.lines);
-}
-function update(dt){
-  const G=S.role==='garden',gap=realT()-S.t;
-  if(gap>.1)catchUp();
-  else if(gap>0){VS.live=true;stepWorld(gap,true);if(G){VS.acc+=lamAt(hour())*gap;while(VS.acc>=1){VS.acc--;spawnCustomer()}}}
-  const h=hour(),nf=h<6?1:h<8?(8-h)/2:h<19?0:h<21?(h-19)/2:1;VS.night=nf*.9;
-  if(G){VS.pedT-=dt;if(VS.pedT<=0){VS.pedT=nf>.5?15+Math.random()*20:3+Math.random()*7;const l=Math.random()<.5,y=(LV1ON&&PT.pedY?PT.pedY:510+FO)+R(0,8),w=mkW({role:'ped',x:l?-24:424,y,lane:y,speed:55+R(0,25),look:{shirt:pickA(SHIRTS),hair:pickA(HAIR),skin:pickA(SKIN)}});w.script=[{go:{x:l?424:-24,y,lane:y}}];VS.walkers.push(w)}}
-  VS.walkers.forEach(w=>stepW(w,dt));VS.walkers=VS.walkers.filter(w=>!w.done);
-  VS.svan=VS.walkers.some(w=>w.role==='courier')?Math.min(1,VS.svan+dt):Math.max(0,VS.svan-dt);
-  const near=VS.walkers.some(w=>Math.abs(w.x-200)<24&&Math.abs(w.y-471-FO)<34);VS.door+=((near?1:0)-VS.door)*Math.min(1,dt*8);
-  const v=VS.van;
-  if(v.st==='park'&&v.load>0&&v.pending<=0)v.st='out';
-  if(v.st==='out'){v.x+=220*dt;if(v.x>160){v.st='back';v.load=0}}
-  if(v.st==='back'){v.x-=220*dt;if(v.x<=0){v.x=0;v.st='park'}}
-  VS.parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=(p.vz||0)*dt;p.life-=dt});VS.parts=VS.parts.filter(p=>p.life>0);
-  VS.floats.forEach(f=>f.t+=dt);VS.floats=VS.floats.filter(f=>f.t<1.4);
-  VS.hudT-=dt;if(VS.hudT<=0){VS.hudT=.5;hud();clockTick()}
-  VS.panT-=dt;const pk=S.v+'|'+Math.floor(S.t*6);if(VS.panT<=0&&pk!==VS.pv&&!VS.pd){VS.panT=2;panelDraw()}
-  VS.saveT-=dt;if(VS.saveT<=0){VS.saveT=5;save()}
-}
-let last=0;
-function loop(t){const dt=Math.min(.05,(t-last)/1000||0);last=t;try{if(S&&!$('#game').hidden){update(dt);render()}else if(!S)startArt(dt)}catch(e){console.error(e)}requestAnimationFrame(loop)}
 
-/* ================= game ================= */
-function newGame(role){
-  const G=role==='garden';
-  const base=new Date();base.setHours(0,0,0,0);
-  S={role,rows:2,slots:16,base:base.getTime(),open:9,close:19,auto:G?{restock:true,sup:0,reserve:100}:{deliver:true,resow:true},alerts:[],akeys:{},unread:0,cacc:0,chkT:0,bank:{loans:[],ok:0,miss:0,paid:0},t:0,money:G?300:250,rep:50,fans:6,sat:65,plants:[],orders:[],upg:{},staff:G?{jard:1,caixa:0,vend:0}:{trab:2,com:0},price:{},sold:0,earned:0,nid:1,tab:'main',won:false,free:true,report:null,sf:{},today:null,pacc:0,ot:{n:0,ok:0},v:1,lamPrev:0};
-  S.t=realT();geo(2);resetVS();refreshSupply();S.today=newToday();
-  KEYS.forEach(k=>S.price[k]=Math.round(ref(k)));
-  if(!G){
-    S.plants=[plant('petunia',3,60,95,0,0,2),plant('petunia',2,45,90,0,1,2),plant('lavanda',2,30,85,true,2,3),plant('suculenta',4,70,100,0,3,1),plant('monstera',1,55,90,0,4,6),plant('orquidea',5,60,95,0,7,8),plant('petunia',1,70,100,0,8,2)];
-    S.orders=[{id:S.nid++,who:BUYERS[0],sp:'petunia',qty:2,price:S.price.petunia,due:Math.round(S.t)+3*24},{id:S.nid++,who:BUYERS[1],sp:'monstera',qty:1,price:S.price.monstera,due:Math.round(S.t)+6*24}];
-  }else{
-    const st=[['petunia',90],['petunia',85],['lavanda',80],['suculenta',95],['suculenta',90],['orquidea',95],['monstera',80],['lavanda',88],['oliveira',92],['petunia',88],['lavanda',90],['monstera',86]];
-    S.plants=st.map(([sp,h],i)=>plant(sp,SP[sp].g,R(50,80),h,sp==='monstera',i,supCost(0,sp)));
-    S.plants[6].w=18;
-    S.orders=[{id:S.nid++,who:CLIENTS[0],sp:'orquidea',qty:2,price:Math.round(ref('orquidea')*1.3),due:dayN()+3}];
-  }
-  S.lamPrev=0;VS.live=true;
-  S.alerts=[{id:S.nid++,t:S.t,who:G?nm('jard'):nm('trab'),lvl:'g',msg:G?`Olá! Sou a ${nm('jard')}, a jardineira. Rego e trato as plantas enquanto a loja está aberta (das ${hh(S.open)} às ${hh(S.close)}). Aviso-te aqui quando faltar alguma coisa.`:`Olá! Sou o ${nm('trab')}. A equipa trabalha das 08:00 às 18:00: regamos e tratamos as pragas. Aviso-te aqui dos pedidos e do que falta.`}];S.unread=1;
-  setupWalkers();
+/* ---------- data ---------- */
+const SP={petunia:{n:'Petúnia',t:45,price:12,seed:2},lavanda:{n:'Lavanda',t:60,price:16,seed:3},suculenta:{n:'Suculenta',t:70,price:10,seed:1},orquidea:{n:'Orquídea',t:110,price:35,seed:8},monstera:{n:'Monstera',t:90,price:28,seed:6},oliveira:{n:'Oliveira',t:130,price:55,seed:12}};
+const KEYS=Object.keys(SP);
+const SHIRTS=['#e05a47','#3d7cc9','#f2b134','#7b5ea7','#2a9d8f','#e76f51','#264653','#d16ba5','#f4a261','#5c8d3a'];
+const HAIR=['#2b1d14','#5a3825','#a0522d','#d9b26b','#1b1b1b','#8c8c8c','#c0472b'];
+const SKIN=['#f1c9a5','#e0ac7e','#c68642','#8d5524','#f6d7b8'];
+const SAVE='vdg-proto-1';
+let G=null;
+function fresh(){return{money:40,inv:{petunia:2,lavanda:1},pots:Array(16).fill(null).map((_,i)=>i<5?{sp:KEYS[i%4],g:[1,.6,.2,1,.8][i],w:[80,60,25,90,70][i]}:null),shop:Array(24).fill(null).map((_,i)=>i<6?{sp:KEYS[i%5]}:null),sold:0,scene:'out',px:24*TS,py:24.6*TS,help:true,v:2,tables:2,benches:1}}
+try{G=JSON.parse(localStorage.getItem(SAVE))}catch(e){}
+if(!G||!G.pots)G=fresh();
+if(!G.v){G.tables=3;G.benches=2}
+G=Object.assign({v:2,price:{},sat:70,open:9,close:20,staff:{caixa:0,repos:0,jard:0},bank:{loans:[],ok:0,miss:0,paid:0},earned:0,start:Date.now(),lastDay:null,lastT:Date.now(),alerts:[],unread:0,akeys:{},tables:2,benches:1},G);G.v=2;
+const save=()=>{try{localStorage.setItem(SAVE,JSON.stringify(G))}catch(e){}};
+/* ---------- scenes ---------- */
+const OUT={w:48,h:34},SHOP={w:24,h:14};
+const tile=(sc,tx,ty)=>{
+  if(sc==='shop'){if(ty<3)return'wall';return'wood'}
+  if(ty>=20&&ty<=22)return'road';
+  if(ty===19||ty===23)return'walk';
+  if(tx>=13&&tx<=33&&ty>=25&&ty<=33)return'dirt';
+  if(tx>=22&&tx<=24&&ty===24)return'dirt';
+  return'grass'};
+const hash=(x,y)=>{let h=x*374761393+y*668265263;h=(h^(h>>13))*1274126177;return((h^(h>>16))>>>0)/4294967295};
+function drawTile(t,x,y,tx,ty){
+  const r=hash(tx,ty);
+  if(t==='grass'){c.fillStyle=r<.5?'#7cc46a':'#78bf66';c.fillRect(x,y,TS,TS);c.strokeStyle='#5ea34e';c.lineWidth=1.5;for(let i=0;i<3;i++){const bx=x+((r*97+i*11)%28)+2,by=y+((r*53+i*17)%26)+4;c.beginPath();c.moveTo(bx,by);c.lineTo(bx-2,by-5);c.moveTo(bx,by);c.lineTo(bx+2,by-5);c.stroke()}if(r>.93){O(x+16,y+16,3,['#fff','#ffd84a','#ff8fb3'][Math.floor(r*1000)%3]);O(x+16,y+16,1.2,'#f2b134')}}
+  else if(t==='walk'){c.fillStyle='#ddcfb6';c.fillRect(x,y,TS,TS);c.strokeStyle='#c9b89a';c.lineWidth=1.2;for(let i=0;i<2;i++)for(let j=0;j<2;j++){c.beginPath();c.roundRect(x+1+i*16+(j%2)*3,y+1+j*16,13,13,4);c.stroke()}if(ty===19){c.fillStyle='#b5a68b';c.fillRect(x,y+TS-4,TS,4)}else{c.fillStyle='#b5a68b';c.fillRect(x,y,TS,4)}}
+  else if(t==='road'){c.fillStyle='#5d6168';c.fillRect(x,y,TS,TS);if(ty===21&&tx%2===0){c.fillStyle='#e8e2c8';c.fillRect(x+4,y+14,22,4)}if(r>.8){O(x+r*30,y+(r*77)%30,1.5,'#686c73')}}
+  else if(t==='dirt'){c.fillStyle=r<.5?'#c0915e':'#bb8c59';c.fillRect(x,y,TS,TS);O(x+(r*90)%30,y+(r*40)%30,1.6,'#a77a4b');O(x+(r*33)%30,y+(r*71)%30,1.2,'#d4a877')}
+  else if(t==='wood'){c.fillStyle='#d3a46b';c.fillRect(x,y,TS,TS);c.fillStyle='#c4955c';c.fillRect(x,y+15,TS,2);c.fillRect(x,y+31,TS,1);c.fillRect(x+((tx%2)?8:22),y,2,15);c.fillRect(x+((tx%2)?20:4),y+17,2,15)}
+  else if(t==='wall'){c.fillStyle='#efe2c6';c.fillRect(x,y,TS,TS);if(ty===2){c.fillStyle='#c9b48d';c.fillRect(x,y+TS-6,TS,6)}}
 }
-function say(t){UI.toast=t;layer();clearTimeout(say.t);say.t=setTimeout(()=>{UI.toast='';layer()},2200)}
-const P=id=>S.plants.find(p=>p.id==id);
-const pay=c=>{if(S.money<c){say('Não tens dinheiro suficiente');return false}S.money-=c;return true};
-const ready=sp=>S.plants.filter(p=>p.sp===sp&&mature(p)&&p.h>=50&&!VS.hidden.has(p.id)).sort((a,b)=>b.h-a.h);
-function takeOut(p,dest){removePlant(p,dest,true)}
-const slotCost=()=>[150,260,380,500,650,800][Math.max(0,Math.floor((S.slots-12)/6))]||999;
-const expCost=()=>S.rows===2?500:1000;
-function expand(){S.rows++;geo(S.rows);flushJobs();VS.walkers=VS.walkers.filter(w=>w.role!=='ped');setupWalkers()}
-const UPG={
- prod:[{k:'amp',n:'Ampliar a estufa',d:'Mais uma fila de espaço: cabem mais 2 bancadas (12 vasos)',c:expCost,max:()=>S.rows>=4,run:expand},
-  {k:'estufa',n:'Nova bancada',d:'Mais vasos na estufa',c:()=>S.rows===2?150:slotCost(),max:()=>S.slots>=S.rows*12,full:'Amplia primeiro a estufa',run:()=>S.slots=Math.min(S.rows*12,S.slots+(S.rows===2?8:6))},
-  {k:'bio',n:'Controlo biológico',d:'Joaninhas na estufa: metade das pragas',c:()=>90}],
- garden:[{k:'amp',n:'Ampliar a loja',d:'Mais uma fila de espaço: cabem mais 2 mesas (12 lugares)',c:expCost,max:()=>S.rows>=4,run:expand},
-  {k:'mesa',n:'Nova mesa',d:'Mais lugares na loja',c:()=>S.rows===2?150:slotCost(),max:()=>S.slots>=S.rows*12,full:'Amplia primeiro a loja',run:()=>S.slots=Math.min(S.rows*12,S.slots+(S.rows===2?8:6))},
-  {k:'fid',n:'Programa de fidelização',d:'Cartão de selos com QR: os clientes fiéis voltam 60% mais vezes',c:()=>110},
-  {k:'mkt',n:'Montra e redes sociais',d:'Mais gente da rua entra na loja',c:()=>80}]
-};
-function act(a,arg){
-  if(S&&VS.phase==='night'&&!['tab','noop','hidetip','close-sheet'].includes(a))return;
-  const p=S?P(arg):null,G=S&&S.role==='garden';
-  switch(a){
-  case'role':newGame(arg);setTimeout(()=>say('Arrasta o mapa para ver tudo. Toca nos ícones para abrir os painéis.'),400);break;
-  case'tile':
-    if(p)UI.sheet={t:'plant',id:p.id};
-    else if(arg&&arg[0]==='x'){const i=+arg.slice(1);if(i>=S.slots){S.tab='upg';UI.sheet={t:'panel'};break}if(VS.ghosts[i])return say('Essa planta está a ser levada');if(G){S.tab='forn';UI.sheet={t:'panel'};break}UI.sheet={t:'seeds',slot:i}}
-    break;
-  case'seed':{let i=UI.sheet&&UI.sheet.slot!=null?UI.sheet.slot:freeSlot();if(i<0||S.plants.some(q=>q.slot===i))i=freeSlot();if(i<0)return say('A estufa está cheia');if(!pay(SP[arg].seed))return;const np=plant(arg,0,60,100,false,i,SP[arg].seed);S.plants.push(np);VS.hidden.add(np.id);VS.jobs.push({k:'seed',slot:i,pid:np.id});UI.sheet=null;S.v++;break}
-  case'water':p.w+=45;if(p.w>100){p.h=Math.max(1,p.h-10);say(SP[p.sp].n+' encharcada: perdeu saúde')}p.w=Math.min(100,p.w);VS.jobs.push({k:'water',slot:p.slot});UI.sheet=null;break;
-  case'waterAll':{let o=0;S.plants.forEach(q=>{q.w+=45;if(q.w>100){q.h=Math.max(1,q.h-10);o++}q.w=Math.min(100,q.w);VS.jobs.push({k:'water',slot:q.slot})});if(o)say(o+(o>1?' plantas ficaram encharcadas':' planta ficou encharcada'));break}
-  case'fert':if(p.f>0)return say('Já está adubada');if(!pay(1))return;p.f=24;VS.jobs.push({k:'fert',slot:p.slot});UI.sheet=null;say('Adubada: cresce a dobrar nas próximas 24 horas');break;
-  case'treat':if(!pay(2))return;p.pest=false;VS.jobs.push({k:'treat',slot:p.slot});UI.sheet=null;break;
-  case'market':{const v=market(p);S.money+=v;S.earned+=v;S.sold++;takeOut(p,'van');UI.sheet=null;say('Vai na carrinha para o mercado: +'+fmt(v));break}
-  case'toss':takeOut(p,'bin');UI.sheet=null;break;
-  case'buy':{const[i,sp,n]=arg.split('|');let k=0;for(;k<+n;k++){const s=freeSlot();if(s<0){if(!k)return say('Não há lugar nas mesas');break}const c=supCost(+i,sp);if(S.money<c){if(!k)return say('Não tens dinheiro suficiente');break}S.money-=c;const q=SUP[+i].q,np=plant(sp,SP[sp].g,55,R(q[0],q[1]),false,s,c);S.plants.push(np);VS.hidden.add(np.id);spawnCourier(s,np.id,{...np},k)}S.v++;say(`${k} ${SP[sp].n} a caminho`);break}
-  case'deliver':{const o=S.orders.find(x=>x.id==arg);if(!o)return;const v=deliverOrder(o,true);if(!v)return;say(`Entregue a ${o.who}: +${fmt(v)}`);break}
-  case'upg':{const u=UPG[S.role].find(x=>x.k===arg);if(!pay(u.c()))return;if(u.run)u.run();else S.upg[u.k]=1;S.v++;say(u.n+': feito');break}
-  case'hire':{const d=STAFF[S.role].find(x=>x.k===arg);if(S.staff[arg]>=d.max)return;S.staff[arg]++;setupWalkers();S.v++;say(`${d.n} contratado: ${fmt(d.w)} por dia`);break}
-  case'fire':{const d=STAFF[S.role].find(x=>x.k===arg);if(S.staff[arg]<=d.min)return;S.staff[arg]--;setupWalkers();S.v++;break}
-  case'price':{const[sp,d]=arg.split('|');S.price[sp]=Math.max(1,S.price[sp]+(+d));S.v++;break}
-  case'lamt':UI.lamt=+arg;break;
-  case'ldays':UI.ldays=+arg;break;
-  case'loan':{const lim=limit(),a=Math.min(UI.lamt||250,lim),d=UI.ldays||10;if(score()<450||a>lim)return say('O banco recusou este valor');const tm=loanTerms(a,d);S.money+=a;S.bank.loans.push({id:S.nid++,amount:a,left:tm.total,inst:tm.inst});S.v++;say(`Crédito aprovado: +${fmt(a)}`);break}
-  case'payoff':{const l=S.bank.loans.find(x=>x.id==arg);if(!l)return;if(S.money<l.left)return say('Não tens dinheiro para pagar tudo');S.money-=l.left;l.left=0;S.bank.loans=S.bank.loans.filter(x=>x!==l);S.bank.paid++;S.bank.ok++;S.v++;say('Empréstimo pago. A nota de crédito subiu');break}
-  case'tab':S.tab=arg;UI.sheet={t:'panel'};if(arg==='alerts')S.unread=0;break;
-  case'hidetip':{const t=$('#tip');if(t)t.hidden=true;return}
-  case'auto':S.auto[arg]=!S.auto[arg];if(arg==='restock'&&S.auto.restock)restock(true);if(arg==='deliver'&&S.auto.deliver)autoDeliver(true);break;
-  case'autosup':S.auto.sup=+arg;break;
-  case'reserve':S.auto.reserve=+arg;break;
-  case'hours':{const[k,d]=arg.split('|');if(k==='open')S.open=clamp(S.open+(+d),6,12);else S.close=clamp(S.close+(+d),15,23);break}
-  case'readall':S.alerts=[];S.unread=0;break;
-  case'close-sheet':UI.sheet=null;break;
-  case'next':S.report=null;break;
-  case'restart':S=null;UI.sheet=null;geo(2);resetVS();break;
-  case'wonok':S.wonSeen=true;break;
-  case'noop':return;
-  }
-  save();draw();
+/* ---------- static objects ---------- */
+const OL='#3b2a20';
+function outline(w){c.strokeStyle=OL;c.lineWidth=w||2;c.stroke()}
+function building(b){
+  const{x,y,w,h}=b,rh=h*.5;
+  c.fillStyle='rgba(0,0,0,.18)';c.fillRect(x+6,y+h-4,w,10);
+  c.beginPath();c.rect(x,y+rh,w,h-rh);c.fillStyle=b.wall;c.fill();outline();
+  for(let i=0;i<b.win.length;i++){const wx=x+b.win[i];c.beginPath();c.roundRect(wx,y+rh+14,30,26,3);c.fillStyle='#bfe3ef';c.fill();outline();L(wx+15,y+rh+14,wx+15,y+rh+40,OL,1.5);c.fillStyle='rgba(255,255,255,.5)';c.fillRect(wx+4,y+rh+17,6,8)}
+  const dx=b.door;c.beginPath();c.roundRect(dx-18,y+h-46,36,46,[8,8,0,0]);c.fillStyle=b.doorCol||'#8a5a35';c.fill();outline();O(dx+10,y+h-22,2.5,'#f2c94c');
+  if(b.awn){const ax=dx-46,aw=92;for(let i=0;i<8;i++){c.fillStyle=i%2?'#fff':b.awn;c.fillRect(ax+i*aw/8,y+rh-2,aw/8,16)}c.beginPath();c.rect(ax,y+rh-2,aw,16);outline(1.5)}
+  c.beginPath();c.moveTo(x-8,y+rh);c.lineTo(x+w+8,y+rh);c.lineTo(x+w-6,y);c.lineTo(x+6,y);c.closePath();c.fillStyle=b.roof;c.fill();outline();
+  c.strokeStyle=mix(b.roof,'#000000',.2);c.lineWidth=1.5;for(let k=1;k<5;k++){const yy=y+rh*k/5;c.beginPath();c.moveTo(x+6-14*k/5,yy);c.lineTo(x+w-6+14*k/5,yy);c.stroke()}
+  if(b.sign){const sw=Math.max(110,b.sign.length*10);c.beginPath();c.roundRect(dx-sw/2,y+rh-36,sw,26,6);c.fillStyle=b.signBg||'#2f7a2a';c.fill();outline();c.font='700 14px Fredoka,sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText(b.sign,dx,y+rh-18)}
+  if(b.shop){const op=isOpen(),sx=dx+24,sy=y+h-42;L(sx+10,sy-6,sx+10,sy,OL,1.2);c.beginPath();c.roundRect(sx-6,sy,34,14,3);c.fillStyle=op?'#2f9e44':'#c0392b';c.fill();outline(1.2);c.font='800 8px Nunito,sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText(op?'ABERTO':'FECHADO',sx+11,sy+10)}
+  if(b.shop){for(let i=0;i<3;i++)pAt(KEYS[i*2],2,x+b.win[0]+6+i*9,y+rh+40,9);for(let i=0;i<3;i++)pAt(KEYS[i+1],2,x+b.win[b.win.length-1]+6+i*9,y+rh+40,9)}
 }
-
-/* ---------- bank ---------- */
-const debt=()=>S.bank.loans.reduce((a,l)=>a+l.left,0);
-const net=()=>S.money-debt();
-const avgRev=()=>S.earned/Math.max(1,dayN()-1+hour()/24);
-function score(){const b=S.bank;return Math.round(clamp(520+b.ok*10-b.miss*70+b.paid*40+(S.rep-50)*2+Math.min(150,avgRev()*.6)-debt()*.06,300,900))}
-function rating(sc){return sc>=750?{n:'Excelente',r:.04,c:'g'}:sc>=650?{n:'Bom',r:.07,c:'g'}:sc>=550?{n:'Razoável',r:.11,c:'w'}:sc>=450?{n:'Fraco',r:.16,c:'w'}:{n:'Recusado',r:0,c:'r'}}
-function limit(){const sc=score();if(sc<450)return 0;return Math.max(0,Math.floor((clamp((400+avgRev()*6)*(sc/650),0,4000)-debt())/50)*50)}
-function loanTerms(a,d){const rt=rating(score()).r+(d>10?.03:0),total=Math.round(a*(1+rt));return{rt,total,inst:Math.ceil(total/d)}}
-function payLoans(){
-  const b=S.bank;
-  b.loans.forEach(l=>{
-    if(S.money>=l.inst||S.money>=l.left){const v=Math.min(l.inst,l.left);S.money-=v;l.left-=v;b.ok++;S.today.lines.push(['',`Banco: prestação paga −${fmt(v)} (faltam ${fmt(l.left)})`])}
-    else{b.miss++;l.left+=10;S.today.lines.push(['r',`Banco: prestação falhada por falta de dinheiro. Multa de €10 e a tua nota de crédito desceu`])}
-  });
-  const done=b.loans.filter(l=>l.left<=0);done.forEach(()=>{b.paid++;S.today.lines.push(['g','Empréstimo totalmente pago. A tua nota de crédito subiu'])});
-  b.loans=b.loans.filter(l=>l.left>0);
+function tree(t){E(t.x+6,t.y+2,22,8,0,'rgba(0,0,0,.2)');c.beginPath();c.roundRect(t.x-5,t.y-30,10,32,3);c.fillStyle='#7a5032';c.fill();outline();[[0,-58,22],[-16,-46,16],[16,-46,16],[0,-40,18]].forEach(([dx,dy,r],i)=>{c.beginPath();c.arc(t.x+dx,t.y+dy,r,0,TAU);c.fillStyle=i?'#4f9a3a':'#5aa844';c.fill();outline()});O(t.x-7,t.y-66,6,'rgba(255,255,255,.25)')}
+function lamp(l){E(l.x,l.y,7,3,0,'rgba(0,0,0,.2)');c.beginPath();c.roundRect(l.x-2.5,l.y-56,5,56,2);c.fillStyle='#3d4246';c.fill();outline(1.5);c.beginPath();c.roundRect(l.x-8,l.y-68,16,14,4);c.fillStyle='#ffe7a3';c.fill();outline(1.5)}
+function bench(b){c.beginPath();c.roundRect(b.x-26,b.y-22,52,8,3);c.fillStyle='#a8723f';c.fill();outline(1.5);c.beginPath();c.roundRect(b.x-26,b.y-12,52,8,3);c.fill();outline(1.5);c.fillStyle='#6b4a30';c.fillRect(b.x-22,b.y-4,4,6);c.fillRect(b.x+18,b.y-4,4,6)}
+function fenceH(f){for(let x=f.x0;x<=f.x1;x+=TS){c.beginPath();c.roundRect(x-3,f.y-26,6,28,2);c.fillStyle='#b07a45';c.fill();outline(1.5)}c.beginPath();c.rect(f.x0,f.y-21,f.x1-f.x0,5);c.rect(f.x0,f.y-11,f.x1-f.x0,5);c.fillStyle='#c98d52';c.fill();outline(1.5)}
+function fenceV(f){c.beginPath();c.roundRect(f.x-3,f.y-26,6,28,2);c.fillStyle='#b07a45';c.fill();outline(1.5);c.beginPath();c.rect(f.x-2,f.y-26+2,4,TS);c.fillStyle='#c98d52';c.fill()}
+function palletBench(b){c.fillStyle='rgba(0,0,0,.18)';c.fillRect(b.x+4,b.y+8,b.w,8);c.beginPath();c.roundRect(b.x,b.y-14,b.w,22,3);c.fillStyle='#d19b5c';c.fill();outline();for(let x=b.x+12;x<b.x+b.w;x+=14)L(x,b.y-13,x,b.y+7,'#b8844a',1.5);c.fillStyle='#a8723f';c.fillRect(b.x+4,b.y+8,8,8);c.fillRect(b.x+b.w-12,b.y+8,8,8);c.fillRect(b.x+b.w/2-4,b.y+8,8,8)}
+function barrel(o){E(o.x,o.y+2,16,6,0,'rgba(0,0,0,.2)');c.beginPath();c.roundRect(o.x-14,o.y-34,28,36,8);c.fillStyle='#2f7fd0';c.fill();outline();c.fillStyle='rgba(255,255,255,.25)';c.fillRect(o.x-9,o.y-30,5,28);E(o.x,o.y-34,14,4,0,'#246aa8')}
+function shopTable(t){c.fillStyle='rgba(0,0,0,.18)';c.fillRect(t.x+5,t.y+t.h-2,t.w,8);c.beginPath();c.roundRect(t.x,t.y,t.w,t.h-10,4);c.fillStyle='#d9a15f';c.fill();outline();for(let x=t.x+10;x<t.x+t.w;x+=10)L(x,t.y+2,x,t.y+t.h-12,'#c48a4c',1.2);c.beginPath();c.rect(t.x,t.y+t.h-10,t.w,10);c.fillStyle='#a8723f';c.fill();outline()}
+function counter(o){c.fillStyle='rgba(0,0,0,.18)';c.fillRect(o.x+5,o.y+o.h,o.w,8);c.beginPath();c.roundRect(o.x,o.y,o.w,o.h-22,4);c.fillStyle='#b5824e';c.fill();outline();c.beginPath();c.rect(o.x,o.y+o.h-22,o.w,22);c.fillStyle='#93643a';c.fill();outline();c.beginPath();c.roundRect(o.x+o.w-44,o.y+6,30,20,3);c.fillStyle='#3d4246';c.fill();outline(1.5);c.fillStyle='#9fd3a8';c.fillRect(o.x+o.w-40,o.y+9,22,7);pAt('suculenta',2,o.x+18,o.y+22,13)}
+function car(k){const w=74,h=34,x=k.x-w/2,y=k.y-h;E(k.x,k.y+2,40,7,0,'rgba(0,0,0,.25)');c.beginPath();c.roundRect(x,y,w,h-6,10);c.fillStyle=k.col;c.fill();outline();c.beginPath();c.roundRect(x+(k.v>0?18:16),y-10,40,16,7);c.fillStyle=mix(k.col,'#ffffff',.15);c.fill();outline();c.fillStyle='#bfe3ef';c.fillRect(x+(k.v>0?24:22),y-6,13,9);c.fillRect(x+(k.v>0?40:38),y-6,13,9);[x+16,x+w-16].forEach(wx=>{O(wx,y+h-6,7,'#222');O(wx,y+h-6,3,'#999')});O(k.v>0?x+w-3:x+3,y+12,3,'#ffe27a')}
+const OUTOBJ=[],OUTSOLID=[],SHOPOBJ=[],SHOPSOLID=[];
+const BUILD=[
+ {x:3*TS,y:12*TS,w:8*TS,h:7*TS,wall:'#f3e0c4',roof:'#c75b3f',win:[22,200],door:7*TS,awn:'#d94b3b',sign:'Café Estrela',signBg:'#7a3b2a',id:'cafe'},
+ {x:16*TS,y:10*TS,w:15*TS,h:9*TS,wall:'#fbf3e4',roof:'#3f7d4e',win:[24,92,312,380],door:23.5*TS,awn:'#2f7a2a',sign:'Vida de Garden',id:'shop',shop:1,doorCol:'#6aa9c0'},
+ {x:35*TS,y:12*TS,w:8*TS,h:7*TS,wall:'#f6e7cf',roof:'#d08a3a',win:[22,200],door:39*TS,awn:'#e6a23c',sign:'Padaria',signBg:'#8a5a35',id:'bakery'},
+ {x:3*TS,y:2*TS,w:7*TS,h:6*TS,wall:'#e9dfd0',roof:'#8b5e4a',win:[30,150],door:6.5*TS},
+ {x:14*TS,y:1*TS,w:7*TS,h:6*TS,wall:'#efe6d6',roof:'#a44a3f',win:[30,150],door:17.5*TS},
+ {x:33*TS,y:2*TS,w:8*TS,h:6*TS,wall:'#e7e2d4',roof:'#5c7a96',win:[30,180],door:37*TS},
+ {x:2*TS,y:26*TS,w:7*TS,h:6*TS,wall:'#efe6d6',roof:'#b0553f',win:[30,150],door:5.5*TS},
+ {x:37*TS,y:26*TS,w:8*TS,h:6*TS,wall:'#e9dfd0',roof:'#6b8f5a',win:[30,180],door:41*TS}];
+BUILD.forEach(b=>{OUTOBJ.push({k:b.y+b.h,f:()=>building(b)});OUTSOLID.push({x:b.x,y:b.y+b.h*.45,w:b.w,h:b.h*.55-4})});
+[[2,10],[12,9],[32,9],[45,10],[25,4],[28,7],[44,3],[1,18],[46,17],[11,28],[35,29],[46,31],[1,33],[24,33.5],[12,1]].forEach(([tx,ty])=>{const t={x:tx*TS,y:ty*TS};OUTOBJ.push({k:t.y,f:()=>tree(t)});OUTSOLID.push({x:t.x-8,y:t.y-8,w:16,h:10})});
+for(let x=4;x<48;x+=9){const l={x:x*TS,y:19.85*TS};OUTOBJ.push({k:l.y,f:()=>lamp(l)});OUTSOLID.push({x:l.x-4,y:l.y-4,w:8,h:6})}
+[[13,19.8],[33,19.8],[20,23.9]].forEach(([tx,ty])=>{const b={x:tx*TS,y:ty*TS};OUTOBJ.push({k:b.y,f:()=>bench(b)});OUTSOLID.push({x:b.x-26,y:b.y-14,w:52,h:14})});
+{const x0=13*TS,x1=33*TS,y0=25*TS,y1=33*TS;
+ OUTOBJ.push({k:y0,f:()=>fenceH({x0,x1:22*TS,y:y0})},{k:y0,f:()=>fenceH({x0:25*TS,x1,y:y0})},{k:y1,f:()=>fenceH({x0,x1,y:y1})});
+ for(let y=y0+TS;y<y1;y+=TS){const a={x:x0,y},b={x:x1,y};OUTOBJ.push({k:y,f:()=>fenceV(a)},{k:y,f:()=>fenceV(b)})}
+ OUTSOLID.push({x:x0,y:y0-8,w:22*TS-x0,h:10},{x:25*TS,y:y0-8,w:x1-25*TS,h:10},{x:x0,y:y1-8,w:x1-x0,h:10},{x:x0-4,y:y0,w:8,h:y1-y0},{x:x1-4,y:y0,w:8,h:y1-y0});
+ const bar={x:15*TS,y:26.6*TS};OUTOBJ.push({k:bar.y,f:()=>barrel(bar)});OUTSOLID.push({x:bar.x-14,y:bar.y-10,w:28,h:12});
+ OUTOBJ.push({k:26.4*TS,f:()=>{c.font='700 13px Fredoka,sans-serif';c.textAlign='center';c.lineWidth=4;c.strokeStyle='#fff';c.strokeText('Viveiro',23.5*TS,24.7*TS);c.fillStyle='#2f5a14';c.fillText('Viveiro',23.5*TS,24.7*TS)}});
 }
-function bankPanel(){
-  const sc=score(),rt=rating(sc),lim=limit(),b=S.bank,amt=Math.min(UI.lamt||250,lim),days=UI.ldays||10,tm=loanTerms(amt,days);
-  const fac=[['Pagamentos a tempo',b.ok],['Prestações falhadas',b.miss],['Empréstimos pagos',b.paid],['Faturação média',fmt(avgRev())+'/dia'],['Reputação',Math.round(S.rep)],['Dívida atual',fmt(debt())]];
-  let h=`<div class="card" style="grid-template-columns:1fr"><h3>Análise de crédito</h3>${meter('Nota',(sc-300)/6,rt.c,sc+' · '+rt.n)}<dl class="kv">${fac.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl><p>Pagar as prestações a tempo e faturar mais sobe a nota. Falhar uma prestação desce muito.</p></div>`;
-  if(sc<450)h+=`<div class="card" style="grid-template-columns:1fr"><h3>Crédito recusado</h3><p>A tua nota está abaixo de 450. Paga o que deves e vende mais para voltar a ter crédito.</p></div>`;
-  else{
-    const opts=[...new Set([100,250,500,1000,2000].filter(v=>v<lim).concat(lim))];
-    h+=`<div class="card" style="grid-template-columns:1fr"><h3>Pedir empréstimo</h3><p>Podes pedir até <b>${fmt(lim)}</b>. Juro ${Math.round(rt.r*100)}% (prazo de 20 dias: +3%). A prestação é cobrada à meia-noite.</p>
-    <div class="seg">${opts.map(v=>`<button data-act="lamt" data-arg="${v}" aria-pressed="${amt===v}">${v===lim?'Máximo '+fmt(v):fmt(v)}</button>`).join('')}</div>
-    <div class="seg">${[10,20].map(v=>`<button data-act="ldays" data-arg="${v}" aria-pressed="${days===v}">${v} dias</button>`).join('')}</div>
-    <dl class="kv"><dt>Recebes agora</dt><dd>${fmt(amt)}</dd><dt>Total a pagar</dt><dd>${fmt(tm.total)}</dd><dt>Prestação</dt><dd>${fmt(tm.inst)} por dia, ${days} dias</dd></dl>
-    <div class="row" style="margin-top:8px"><span></span><button class="btn" data-act="loan" ${amt>lim?'disabled':''}>Pedir ${fmt(amt)}</button></div></div>`;
-  }
-  h+=b.loans.map(l=>`<div class="card" style="grid-template-columns:1fr"><h3>Empréstimo de ${fmt(l.amount)}</h3><p>Falta pagar ${fmt(l.left)} · prestação ${fmt(l.inst)}/dia</p><div class="row"><span></span><button class="btn alt" data-act="payoff" data-arg="${l.id}">Pagar tudo agora · ${fmt(l.left)}</button></div></div>`).join('');
-  return h;
+const BENCHES=[{x:16*TS,y:28.4*TS,w:15*TS},{x:16*TS,y:31.4*TS,w:15*TS}];
+BENCHES.forEach((b,bi)=>{OUTOBJ.push({k:b.y-14,f:()=>{if(bi<G.benches)palletBench(b);else lockedArea(b.x,b.y-20,b.w,30,'Segunda bancada · Gestão › Loja')}});OUTSOLID.push({x:b.x,y:b.y-12,w:b.w,h:20,bi})});
+const POTS=[];BENCHES.forEach((b,bi)=>{for(let i=0;i<8;i++)POTS.push({x:b.x+20+i*(b.w-40)/7,y:b.y-3})});
+function lockedArea(x,y,w,h,t){c.save();c.setLineDash([8,6]);c.beginPath();c.roundRect(x,y,w,h,8);c.fillStyle='rgba(255,255,255,.18)';c.fill();c.strokeStyle='rgba(59,42,32,.55)';c.lineWidth=2;c.stroke();c.restore();c.font='700 12px Fredoka,sans-serif';c.textAlign='center';c.fillStyle='rgba(59,42,32,.75)';const lines=t.split(' · ');lines.forEach((l,i)=>c.fillText(l,x+w/2,y+h/2+4+(i-(lines.length-1)/2)*15))}
+/* shop interior — drawn in code */
+const RW=24*TS,RH=14*TS,BW=3.4*TS,FW=13*TS,DG=[10.7*TS,13.3*TS];
+const TBL=[7,11.7,16.4].map(x=>({x:x*TS,y:4.7*TS,w:2.6*TS,h:5.3*TS}));
+const COR=[6.15,10.65,15.35,19.85].map(v=>v*TS);
+const SLOTS=[];TBL.forEach((t,ti)=>{for(let r=0;r<4;r++)for(let col=0;col<2;col++){const y=t.y+30+r*(t.h-44)/4+4;SLOTS.push({x:t.x+t.w*(col?.73:.27),y,rim:21,cx:COR[ti+col],sy:y+6})}});
+const CTR={x:.45*TS,y:7*TS,w:4.7*TS,h:2.7*TS};
+const CNT={a:{x:2.8*TS,y:6.45*TS},b:{x:5.75*TS,y:8.6*TS},reg:{x:3.9*TS,y:7.3*TS}};
+const DECO=[{sp:'monstera',x:21.9*TS,y:5.4*TS,r:34},{sp:'oliveira',x:22.2*TS,y:8.9*TS,r:34},{sp:'monstera',x:21.7*TS,y:12.2*TS,r:30},{sp:'oliveira',x:9.6*TS,y:12.3*TS,r:22},{sp:'lavanda',x:14.4*TS,y:12.3*TS,r:22}];SHOPSOLID.push({x:15.6*TS-14,y:12.6*TS-8,w:28,h:10});
+SHOPSOLID.push(...TBL.map((t,ti)=>({x:t.x-4,y:t.y+10,w:t.w+8,h:t.h-6,ti})),{x:CTR.x,y:CTR.y+10,w:CTR.w,h:CTR.h-10},...DECO.map(d=>({x:d.x-d.r*.55,y:d.y-10,w:d.r*1.1,h:12})),{x:17.9*TS,y:BW-4,w:3*TS,h:20});
+function shopBlocked(x,y){if(y<BW+6||x<16||x>RW-16)return true;if(y>FW-4&&!(x>DG[0]+10&&x<DG[1]-10))return true;if(y>RH-4)return true;const fx=x-8,fy=y-6;return SHOPSOLID.some(r=>(r.ti==null||r.ti<G.tables)&&fx<r.x+r.w&&fx+16>r.x&&fy<r.y+r.h&&fy+8>r.y)}
+const POUT={x:23.5*TS,y:19.75*TS},PIN={x:12*TS,y:13.9*TS};
+/* shop drawing */
+function bug(x,y){O(x,y,4.2,'#d2452b');c.beginPath();c.arc(x,y,4.2,0,TAU);c.strokeStyle=OL;c.lineWidth=1;c.stroke();L(x,y-4,x,y+4,OL,1);O(x-1.8,y-1,1,'#222');O(x+1.8,y+1.4,1,'#222');O(x,y-4.5,1.8,'#222')}
+function potT(x,y,s){c.beginPath();c.moveTo(x-s,y-s*1.3);c.lineTo(x+s,y-s*1.3);c.lineTo(x+s*.75,y);c.lineTo(x-s*.75,y);c.closePath();c.fillStyle='#d2713f';c.fill();outline(1.2);c.beginPath();c.roundRect(x-s*1.1,y-s*1.5,s*2.2,s*.45,1.5);c.fillStyle='#e0844f';c.fill();outline(1.2)}
+function can(x,y,col){c.beginPath();c.roundRect(x-9,y-16,18,16,4);c.fillStyle=col;c.fill();outline(1.4);c.beginPath();c.moveTo(x+8,y-12);c.lineTo(x+20,y-22);c.lineWidth=3;c.strokeStyle=OL;c.stroke();c.lineWidth=1.6;c.strokeStyle=col;c.stroke();c.beginPath();c.arc(x,y-17,6,Math.PI,0);c.lineWidth=2;c.strokeStyle=OL;c.stroke()}
+function bag(x,y){c.beginPath();c.roundRect(x-13,y-20,26,20,5);c.fillStyle='#e8dcc0';c.fill();outline(1.4);c.fillStyle='#6f9a3c';c.fillRect(x-7,y-13,14,6)}
+function shelf(x0,x1,y){c.fillStyle='rgba(0,0,0,.12)';c.fillRect(x0,y,x1-x0,6);c.beginPath();c.rect(x0,y-6,x1-x0,6);c.fillStyle='#b7834c';c.fill();outline(1.4);[x0+6,x1-10].forEach(bx=>{c.fillStyle='#8a5a35';c.fillRect(bx,y,4,5)})}
+const SHELFITEMS=(()=>{const a=[],sps=['petunia','suculenta','lavanda','orquidea','monstera','oliveira'];let r=7;const rnd=()=>{r=(r*9301+49297)%233280;return r/233280};
+ [[18,330,44],[18,330,92],[440,560,44],[440,560,92]].forEach(([x0,x1,y])=>{for(let x=x0+16;x<x1-10;x+=26+rnd()*8){const k=rnd();a.push(k<.55?{t:'pl',sp:sps[Math.floor(rnd()*6)],x,y:y-6,r:11}:k<.8?{t:'pot',x,y:y-6,s:6+rnd()*2}:{t:'pot2',x,y:y-6})}});
+ return a})();
+function shopFloor(){
+  c.fillStyle='#d9ab72';c.fillRect(0,BW,RW,RH-BW);
+  for(let y=BW,i=0;y<RH;y+=16,i++){c.fillStyle=i%2?'#d3a46b':'#dcb079';c.fillRect(0,y,RW,15);c.fillStyle='#c09058';c.fillRect(0,y+15,RW,1);for(let x=(i%3)*40;x<RW;x+=120){c.fillRect(x,y,1.5,15)}}
+  const g=c.createLinearGradient(0,BW,0,BW+40);g.addColorStop(0,'rgba(60,35,15,.28)');g.addColorStop(1,'rgba(60,35,15,0)');c.fillStyle=g;c.fillRect(0,BW,RW,40);
+  // rug at the door and under the tables
+  c.beginPath();c.roundRect(DG[0]+6,FW-34,DG[1]-DG[0]-12,30,6);c.fillStyle='#8f3f3a';c.fill();outline(1.5);c.strokeStyle='#e9c46a';c.lineWidth=1.5;c.strokeRect(DG[0]+12,FW-29,DG[1]-DG[0]-24,20);
+  // back wall
+  c.fillStyle='#f4ead3';c.fillRect(0,0,RW,BW);c.fillStyle='#e8dbbd';for(let x=0;x<RW;x+=24)c.fillRect(x,10,1,BW-18);
+  c.fillStyle='#6f4a2c';c.fillRect(0,0,RW,10);c.fillStyle='#a8723f';c.fillRect(0,BW-8,RW,8);
+  shelf(14,334,44);shelf(14,334,92);shelf(436,564,44);shelf(436,564,92);
+  // window on the back wall
+  c.beginPath();c.roundRect(600,16,150,66,6);c.fillStyle='#bfe3ef';c.fill();outline(2);c.fillStyle='rgba(255,255,255,.55)';c.fillRect(610,22,16,30);L(675,16,675,82,OL,2);c.beginPath();c.rect(594,80,162,8);c.fillStyle='#c98d52';c.fill();outline(1.4);
+  pAt('petunia',2,622,86,12);pAt('suculenta',2,652,86,11);pAt('lavanda',2,700,86,12);pAt('petunia',2,730,86,12);
+  // sign
+  c.beginPath();c.roundRect(344,18,84,62,10);c.fillStyle='#2f7a2a';c.fill();outline(2);c.font='700 15px Fredoka,sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText('Vida de',386,44);c.fillText('Garden',386,62);O(386,12,3,OL);L(366,18,386,12,OL,1.5);L(406,18,386,12,OL,1.5);
+  SHELFITEMS.forEach(o=>{if(o.t==='pl')pAt(o.sp,2,o.x,o.y,o.r);else if(o.t==='pot')potT(o.x,o.y,o.s);else{potT(o.x-4,o.y,5);potT(o.x+5,o.y,5)}});
+  can(474,38,'#3e9a4a');can(508,38,'#2f7fd0');can(540,38,'#d94b3b');
+  // side walls
+  c.fillStyle='#e3d3b1';c.fillRect(0,0,10,RH);c.fillRect(RW-10,0,10,RH);c.fillStyle='#6f4a2c';c.fillRect(8,0,2,RH);c.fillRect(RW-10,0,2,RH);
 }
-/* ================= interface ================= */
-const trend=sp=>sm(sp)>=1.2?'<span class="hot">em alta</span>':sm(sp)<=.7?'<span class="cold">procura fraca</span>':'procura normal';
-function priceTag(r){return r<.9?['barato','g']:r<=1.1?['preço justo','g']:r<=1.3?['caro','w']:['muito caro','r']}
-function tip(){
-  const G=S.role==='garden',h=hour();
-  if(!isOpen())return G?`A loja está fechada. Abre às <b>${hh(S.open)}</b>. Podes comprar plantas e mudar preços na mesma.`:`A equipa está em casa. O trabalho recomeça às <b>08:00</b>.`;
-  const t=S.plants.find(p=>p.w<25&&!VS.hidden.has(p.id)),pe=S.plants.find(p=>p.pest),o=S.orders.find(o=>ready(o.sp).length>=o.qty);
-  if(S.unread)return`Tens <b>${S.unread} ${S.unread>1?'avisos':'aviso'}</b> da equipa. Toca no sino.`;
-  if(o&&!(S.auto&&S.auto.deliver))return`Já podes entregar o pedido de <b>${o.who}</b>.`;
-  if(t)return`A <b>${SP[t.sp].n}</b> tem sede (gota azul). A equipa vai regar, ou toca nela.`;
-  if(pe)return`Há praga na <b>${SP[pe.sp].n}</b> (sinal vermelho).`;
-  if(G){
-    if(VS.q.length>=4&&!S.staff.caixa)return`Fila grande no balcão. Contrata um <b>caixa</b> em Equipa.`;
-    if(S.sat<50)return`Os clientes estão a sair descontentes. Vê os <b>preços</b> e o aspeto das plantas.`;
-    return`Loja aberta até às ${hh(S.close)}. Clientes contentes voltam e trazem mais movimento.`;
-  }
-  return`Os gardens pedem mais quando o teu preço é bom e entregas a tempo.`;
+function shopFront(){
+  // low front wall with glass + flower boxes, door gap in the middle
+  [[0,DG[0]],[DG[1],RW]].forEach(([x0,x1])=>{
+    c.beginPath();c.rect(x0,FW,x1-x0,22);c.fillStyle='#c98d52';c.fill();outline(1.6);
+    for(let x=x0+10,k=0;x<x1-8;x+=13,k++){O(x,FW+4+(k%2)*2,6,['#ff8fb3','#ffd84a','#ffffff','#e05a8a','#b48be0','#ff9f43'][(k*7)%6]);O(x,FW+4+(k%2)*2,2,'#f2b134');if(k%3===0){c.beginPath();c.ellipse(x+6,FW+10,5,3,.5,0,TAU);c.fillStyle='#5aa844';c.fill()}}
+    c.beginPath();c.rect(x0,FW+14,x1-x0,RH-FW-14);c.fillStyle='rgba(191,227,239,.55)';c.fill();outline(1.6);
+    c.fillStyle='rgba(255,255,255,.5)';for(let x=x0+30;x<x1-20;x+=110)c.fillRect(x,FW+18,8,16);
+    c.fillStyle='#7d8a91';c.fillRect(x0,RH-6,x1-x0,6)});
+  [DG[0],DG[1]].forEach(x=>{c.beginPath();c.roundRect(x-5,FW-6,10,RH-FW+6,2);c.fillStyle='#6f4a2c';c.fill();outline(1.4)});
 }
-const left=o=>{const hrs=Math.round(o.due-S.t);if(hrs<0)return'<span class="hot">Atrasado</span>';const d=Math.floor(hrs/24),h=hrs%24;return`faltam ${d?d+'d ':''}${h}h`};
-function panel(){
-  const G=S.role==='garden';
-  if(S.tab==='orders'){
-    const head=G?'':`<p class="note">Pontualidade: ${S.ot.n?Math.round(S.ot.ok/S.ot.n*100)+'%':'sem entregas ainda'}. Entrega cedo para subir a reputação; atrasado pagam 30% menos.</p>`;
-    if(!S.orders.length)return head+`<p class="note">Sem ${G?'encomendas':'pedidos'} por agora. ${G?'Chegam à meia-noite.':'Chegam das 08:00 às 18:00.'}</p>`;
-    return head+S.orders.map(o=>{const have=ready(o.sp).length;return`<div class="card">${spr(o.sp)}<div><h3>${o.qty} × ${SP[o.sp].n}</h3><p>${o.who}</p><p>${G?(o.due<=dayN()?'<span class="hot">Entrega hoje</span>':`Até ao dia ${o.due}`):left(o)}</p></div><div class="row"><span class="price">${fmt(o.price)} <small style="font-size:14px">cada · ${fmt(o.price*o.qty)}</small></span><button class="btn pink" data-act="deliver" data-arg="${o.id}" ${have<o.qty?'disabled':''}>${have<o.qty?`Tens ${have}/${o.qty}`:'Entregar'}</button></div></div>`}).join('');
-  }
-  if(S.tab==='price'){
-    return`<p class="note">${G?'Compra = preço do fornecedor mais barato hoje. Acima do mercado vendes menos e os clientes saem menos satisfeitos.':'Custo = semente + cuidados. Acima do mercado os gardens fazem menos pedidos.'}</p>`+KEYS.map(k=>{
-      const cost=G?supCost(0,k):prodCost(k),pr=S.price[k],lu=pr-cost,mg=Math.round(lu/pr*100),[tl,tc]=priceTag(pr/ref(k));
-      return`<div class="card prow">${spr(k)}<div><h3>${SP[k].n}</h3><p>${G?'Compra':'Custo'} ${fmt(cost)} · mercado ~${fmt(ref(k))} · ${trend(k)}</p></div><div class="row"><span class="step"><button data-act="price" data-arg="${k}|-1" aria-label="Baixar preço">−</button><b>${fmt(pr)}</b><button data-act="price" data-arg="${k}|1" aria-label="Subir preço">+</button></span><span class="tag ${tc}">${tl}</span><span class="profit${lu<0?' neg':''}">Lucro ${fmt(lu)} · ${mg}%</span></div></div>`}).join('');
-  }
-  if(S.tab==='alerts'){
-    if(!S.alerts.length)return`<p class="note">Sem avisos. A equipa avisa aqui quando faltar alguma coisa.</p>`;
-    const when=t=>{const d=dayN()-(Math.floor(t/24)+1);return(d===0?'hoje':d===1?'ontem':`há ${d} dias`)+' às '+hh(t%24)};
-    return`<div class="row" style="grid-column:1/-1"><span class="note" style="margin:0">${S.alerts.length} avisos</span><button class="btn alt sm" data-act="readall">Limpar</button></div>`+S.alerts.map(a=>`<div class="card al ${a.lvl}" style="grid-template-columns:1fr"><p class="who"><b>${a.who}</b> · ${when(a.t)}</p><p class="msg">${a.msg}</p>${a.a?`<div class="row"><span></span><button class="btn alt sm" data-act="${a.a}" data-arg="${a.arg}">${{forn:'Comprar plantas',price:'Ver preços',orders:'Ver pedidos',bank:'Abrir banco',main:'Abrir'}[a.arg]||'Ver planta'}</button></div>`:''}</div>`).join('');
-  }
-  if(S.tab==='bank')return bankPanel();
-  if(S.tab==='team')return`<p class="note">Salários pagos à meia-noite: ${fmt(wages())} por dia.</p>`+STAFF[S.role].map(d=>`<div class="card" style="grid-template-columns:1fr"><div><h3>${d.n} <small class="cnt">${S.staff[d.k]} de ${d.max}</small></h3><p>${d.d}</p></div><div class="row"><span class="price">${fmt(d.w)}<small style="font-size:14px"> /dia</small></span><span style="display:flex;gap:8px"><button class="btn alt" data-act="fire" data-arg="${d.k}" ${S.staff[d.k]<=d.min?'disabled':''}>Despedir</button><button class="btn" data-act="hire" data-arg="${d.k}" ${S.staff[d.k]>=d.max?'disabled':''}>Contratar</button></span></div></div>`).join('');
-  if(S.tab==='upg')return UPG[S.role].map(u=>{const own=u.max?u.max():S.upg[u.k];return`<div class="card" style="grid-template-columns:1fr"><div><h3>${u.n}</h3><p>${u.d}</p></div><div class="row"><span class="price">${own?'':fmt(u.c())}</span><button class="btn" data-act="upg" data-arg="${u.k}" ${own?'disabled':''}>${own?(u.full&&S.rows<4?u.full:u.max?'No máximo':'Ativa'):'Comprar'}</button></div></div>`}).join('');
-  if(S.tab==='forn')return`<div class="card" style="grid-template-columns:1fr"><h3>Reposição automática</h3><p>Quando faltar uma planta, a equipa encomenda sozinha ao fornecedor, sem gastar abaixo da reserva. Funciona mesmo quando não estás.</p><div class="seg"><button data-act="auto" data-arg="restock" aria-pressed="${S.auto.restock}">${S.auto.restock?'Ligada':'Desligada'}</button>${SUP.map((x,i)=>`<button data-act="autosup" data-arg="${i}" aria-pressed="${S.auto.sup===i}">${i?'Bio':'Barato'}</button>`).join('')}</div><div class="seg">Reserva: ${[50,100,250].map(v=>`<button data-act="reserve" data-arg="${v}" aria-pressed="${S.auto.reserve===v}">${fmt(v)}</button>`).join('')}</div></div>`+SUP.map((s,i)=>`<div class="card" style="grid-template-columns:1fr"><div><h3>${s.n}</h3><p>Qualidade ${s.q[0]}–${s.q[1]}% · ${i?'mais caro, plantas perfeitas':'barato, qualidade variável'}</p></div><div class="list" style="grid-column:1/-1">${KEYS.map(k=>`<div class="lrow">${spr(k)}<span><b>${SP[k].n} · ${fmt(supCost(i,k))}</b><small>${trend(k)} · vendes a ${fmt(S.price[k])}</small></span><span style="display:flex;gap:6px"><button class="btn alt sm" data-act="buy" data-arg="${i}|${k}|1">+1</button><button class="btn alt sm" data-act="buy" data-arg="${i}|${k}|3">+3</button></span></div>`).join('')}</div></div>`).join('');
-  const cnt=k=>S.plants.filter(p=>p.sp===k).length;
-  if(G)return`<div class="card" style="grid-template-columns:1fr"><h3>Horário da loja</h3><p>Abre e fecha sozinha, à hora real. Fora do horário não entram clientes e ninguém rega.</p><div class="row"><span>Abre</span><span class="step"><button data-act="hours" data-arg="open|-1">−</button><b>${hh(S.open)}</b><button data-act="hours" data-arg="open|1">+</button></span></div><div class="row"><span>Fecha</span><span class="step"><button data-act="hours" data-arg="close|-1">−</button><b>${hh(S.close)}</b><button data-act="hours" data-arg="close|1">+</button></span></div></div><div class="seg"><button class="btn" data-act="waterAll" style="background:var(--water)">Regar tudo</button><span class="note" style="margin:0">Nas mesas: ${S.plants.length} de ${S.slots}</span></div>
-   <div class="card" style="grid-template-columns:1fr"><h3>Como está a loja</h3>${meter('Satisfação',S.sat,S.sat>=65?'g':S.sat>=45?'w':'r',Math.round(S.sat)+'%')}${meter('Movimento agora',Math.min(100,lamAt(hour())/6*100),'b',lamAt(hour()).toFixed(1)+' clientes/h')}${meter('Clientes fiéis',Math.min(100,S.fans*3),'g',S.fans)}<p>Clientes contentes voltam e trazem amigos. Descontentes não voltam, e o movimento cai.</p></div>`
-   +KEYS.map(k=>`<div class="card">${spr(k)}<div><h3>${SP[k].n}</h3><p>${trend(k)} · ${cnt(k)} nas mesas · vendes a ${fmt(S.price[k])}</p></div></div>`).join('');
-  return`<div class="card" style="grid-template-columns:1fr"><h3>A equipa trata sozinha</h3><p>Funciona mesmo quando não estás, das 08:00 às 18:00.</p><div class="seg"><button data-act="auto" data-arg="deliver" aria-pressed="${S.auto.deliver}">Entregar pedidos prontos: ${S.auto.deliver?'sim':'não'}</button></div><div class="seg"><button data-act="auto" data-arg="resow" aria-pressed="${S.auto.resow}">Voltar a semear a mesma planta: ${S.auto.resow?'sim':'não'}</button></div></div><div class="seg"><button class="btn" data-act="waterAll" style="background:var(--water)">Regar tudo</button><span class="note" style="margin:0">Nas bancadas: ${S.plants.length} de ${S.slots}</span></div>`
-   +KEYS.map(k=>{const ps=S.plants.filter(p=>p.sp===k),r=ps.filter(mature).length;return`<div class="card">${spr(k)}<div><h3>${SP[k].n}</h3><p>${SP[k].g} dias a crescer · semente ${fmt(SP[k].seed)} · ${trend(k)}</p><p>${r} prontas · ${ps.length-r} a crescer · vendes a ${fmt(S.price[k])}</p></div></div>`}).join('');
+function shopTable2(t){
+  c.fillStyle='rgba(0,0,0,.16)';c.beginPath();c.roundRect(t.x+6,t.y+t.h-4,t.w,12,6);c.fill();
+  c.fillStyle='#8a5a35';c.fillRect(t.x+6,t.y+t.h-14,8,16);c.fillRect(t.x+t.w-14,t.y+t.h-14,8,16);
+  c.beginPath();c.roundRect(t.x,t.y,t.w,t.h-14,6);c.fillStyle='#deaa68';c.fill();outline(2);
+  for(let x=t.x+t.w/4;x<t.x+t.w-4;x+=t.w/4)L(x,t.y+3,x,t.y+t.h-17,'#c8925a',1.4);
+  c.beginPath();c.rect(t.x,t.y+t.h-16,t.w,10);c.fillStyle='#b07a45';c.fill();outline(1.6);
 }
-const meter=(l,v,c,t)=>`<div class="meter"><span>${l}</span><span class="track"><i class="${c}" style="width:${clamp(v,2,100)}%"></i></span><b>${t}</b></div>`;
-function sheet(){
-  if(VS.phase==='night')return'';
-  if(S.won&&!S.wonSeen)return`<div class="back"><div class="sheet" data-act="noop"><h2>Conseguiste!</h2><p>Chegaste aos ${fmt(GOAL)} sem dívidas. O teu ${S.role==='garden'?'garden':'negócio'} continua aberto: agora é crescer.</p><dl class="kv"><dt>Caixa</dt><dd>${fmt(S.money)}</dd><dt>Plantas vendidas</dt><dd>${S.sold}</dd><dt>Total faturado</dt><dd>${fmt(S.earned)}</dd><dt>Reputação</dt><dd>${Math.round(S.rep)}/100</dd></dl><div class="acts"><button class="btn" data-act="wonok">Continuar</button><button class="btn alt" data-act="restart">Começar de novo</button></div></div></div>`;
-  if(S.report)return`<div class="back"><div class="sheet" data-act="noop" data-k="rep"><h2>${S.report.title||'Resumo'}</h2><ul class="rep">${S.report.lines.map(([c,t])=>`<li class="${c}">${t}</li>`).join('')}</ul><button class="btn" data-act="next">Continuar</button></div></div>`;
-  if(!UI.sheet)return'';
-  if(UI.sheet.t==='panel'){const tt=TITLES();return`<div class="back" data-act="close-sheet"><div class="sheet big" data-act="noop" data-k="panel${S.tab}"><div class="sh-h"><h2>${tt[S.tab]}</h2><button class="xb" data-act="close-sheet" aria-label="Fechar">${ic('x')}</button></div><section class="cards" id="cards">${panel()}</section></div></div>`}
-  if(UI.sheet.t==='seeds')return`<div class="back" data-act="close-sheet"><div class="sheet" data-act="noop"><h2>O que semear?</h2><p class="note">Tens ${fmt(S.money)}. Um trabalhador leva o tabuleiro até ao vaso.</p><div class="list">${KEYS.map(k=>`<div class="lrow">${spr(k)}<span><b>${SP[k].n}</b><small>${SP[k].g} dias · ${trend(k)} · vendes a ${fmt(S.price[k])}</small></span><button class="btn" data-act="seed" data-arg="${k}">${fmt(SP[k].seed)}</button></div>`).join('')}</div><div class="acts"><button class="btn alt" data-act="close-sheet">Fechar</button></div></div></div>`;
-  const p=P(UI.sheet.id);if(!p){UI.sheet=null;return''}
-  const g=SP[p.sp].g,m=mature(p),G=S.role==='garden';
-  return`<div class="back" data-act="close-sheet"><div class="sheet" data-act="noop"><div class="top">${spr(p.sp,Math.min(1,p.age/g),p.pest,p.h<45)}<div><h2>${SP[p.sp].n}</h2><dl class="kv"><dt>Água</dt><dd>${Math.round(p.w)}%</dd><dt>Saúde</dt><dd>${Math.round(p.h)}%</dd>${G?`<dt>Preço de venda</dt><dd>${fmt(S.price[p.sp])} <small>(comprada a ${fmt(p.cost)})</small></dd>`:`<dt>Crescimento</dt><dd>${m?'pronta':`dia ${Math.floor(p.age)+1} de ${g}`}</dd>`}<dt>Estado</dt><dd>${p.pest?'com praga':p.h<45?'fraca':p.w<25?'com sede':'bem'}</dd></dl></div></div><div class="acts"><button class="btn" data-act="water" data-arg="${p.id}" style="background:var(--water)">Regar</button>${!G&&!m?`<button class="btn alt" data-act="fert" data-arg="${p.id}" ${p.f>0?'disabled':''}>Adubar · €1</button>`:''}${p.pest?`<button class="btn pink" data-act="treat" data-arg="${p.id}">Tratar praga · €2</button>`:''}${!G&&m?`<button class="btn alt" data-act="market" data-arg="${p.id}">Vender no mercado · ${fmt(market(p))}</button>`:''}${p.h<45?`<button class="btn alt" data-act="toss" data-arg="${p.id}">Deitar fora</button>`:''}<button class="btn alt" data-act="close-sheet">Fechar</button></div></div></div>`;
+function counter2(o){
+  c.fillStyle='rgba(0,0,0,.16)';c.fillRect(o.x+6,o.y+o.h-2,o.w,10);
+  c.beginPath();c.roundRect(o.x,o.y,o.w,o.h-22,6);c.fillStyle='#c8955b';c.fill();outline(2);
+  c.beginPath();c.rect(o.x,o.y+o.h-24,o.w,24);c.fillStyle='#9b6a3e';c.fill();outline(1.8);for(let x=o.x+18;x<o.x+o.w;x+=18)L(x,o.y+o.h-22,x,o.y+o.h-2,'#86592f',1.4);
+  c.beginPath();c.roundRect(o.x+o.w-56,o.y+8,40,28,4);c.fillStyle='#3d4246';c.fill();outline(1.6);c.fillStyle='#9fd3a8';c.fillRect(o.x+o.w-51,o.y+12,30,9);c.fillStyle='#585e63';c.fillRect(o.x+o.w-51,o.y+24,30,8);
+  bag(o.x+30,o.y+40);pAt('suculenta',2,o.x+64,o.y+42,14);
 }
-/* ---------- game screen: full-screen map, overlay chips, icon dock ---------- */
-const ICON={
- store:'<path d="M3 9l2-5h14l2 5M3 9h18M3 9c0 2 1.5 3 3 3s3-1 3-3c0 2 1.5 3 3 3s3-1 3-3c0 2 1.5 3 3 3s3-1 3-3M5 12v8h14v-8M10 20v-5h4v5"/>',
- sprout:'<path d="M12 21v-9M12 12c0-4-3-6-7-6 0 4 3 6 7 6zM12 10c0-3 2.5-5 6-5 0 3.5-2.5 5-6 5zM6 21h12"/>',
- tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.5"/>',
- truck:'<path d="M2 6h11v10H2zM13 10h4l4 4v2h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
- clip:'<path d="M8 3h8v3H8zM6 4.5H4V21h16V4.5h-2M8 11h8M8 15h6"/>',
- team:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14c3 0 5 2 5 5"/>',
- hammer:'<path d="M13 5l3-2 5 5-2 3-3-3-9 9-3-3 9-9z"/>',
- bank:'<path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/>',
- coin:'<circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.6 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6v2M12 16v2"/>',
- smile:'<circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.4 2 4 2s3-.5 4-2M9 9.5h.01M15 9.5h.01"/>',
- star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
- sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/>',
- moon:'<path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/>',
- drop:'<path d="M12 3c3.5 4.5 6 7.6 6 10.5a6 6 0 01-12 0C6 10.6 8.5 7.5 12 3z"/>',
- plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',
- flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',bell:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>'
-};
-const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
-const TITLES=()=>({main:S.role==='garden'?'A tua loja':'A tua estufa',price:'Preços e lucro',forn:'Comprar plantas',orders:S.role==='garden'?'Encomendas':'Pedidos dos gardens',team:'Equipa',upg:'Obras e melhorias',bank:'Banco',alerts:'Avisos da equipa'});
-function camFit(){
-  const cv=$('#map');if(!cv)return null;const W=cv.clientWidth,H=cv.clientHeight;if(!W||!H)return null;
-  const mobile=W<700,top=mobile?96:70,bot=mobile?150:110;
-  const fitH=(H-top-bot)/SH,fitW=W/SW,fit=mobile?Math.max(fitH,fitW):fitH,cam=VS.cam||(VS.cam={k:1,x:null,y:null});
-  const z=fit*cam.k,vw=W/z,vh=H/z,T0=top/z,B0=bot/z;
-  if(cam.x==null)cam.x=(SW-vw)/2;
-  cam.x=SW<=vw?(SW-vw)/2:clamp(cam.x,0,SW-vw);
-  const ct=SH+T0+B0;
-  if(cam.y==null)cam.y=-T0-(vh-ct)/2;
-  cam.y=ct<=vh?-T0-(vh-ct)/2:clamp(cam.y,-T0,SH+B0-vh);
-  return{W,H,z,vw};
+/* ---------- actors ---------- */
+const P={x:G.px,y:G.py,dir:Math.PI/2,walk:0,moving:false,look:{rig:1,shirt:'#f2efe6',apron:'#2f7a2a',hair:'#5a3825',skin:'#f1c9a5',hat:1},carry:null,anim:null,sc:1};
+let peds=[],cars=[],custs=[],parts=[],floats=[],scene=G.scene||'out',busy=0;
+function look(){return{shirt:pick(SHIRTS),hair:pick(HAIR),skin:pick(SKIN),pants:pick(['#3d4a5c','#3d5a80','#4a3b2a','#2b2b2b'])}}
+function walker(o){return Object.assign({dir:0,walk:0,moving:false,path:[],speed:50,look:look()},o)}
+function moveAlong(w,dt){w.moving=false;if(!w.path.length)return true;const p=w.path[0],dx=p.x-w.x,dy=p.y-w.y,L_=Math.hypot(dx,dy),st=w.speed*dt;if(L_<=st){w.x=p.x;w.y=p.y;w.path.shift()}else{w.x+=dx/L_*st;w.y+=dy/L_*st;w.walk+=st;w.dir=Math.atan2(dy,dx);w.moving=true}return!w.path.length}
+/* ---------- shop customers ---------- */
+const AROW=11.55*TS,QX=i=>(2.4+i*.95)*TS,QY=10.85*TS;
+function spawnCust(){
+  if(custs.length>=4)return;const filled=G.shop.map((s,i)=>s&&slotOn(i)?i:-1).filter(i=>i>=0&&!custs.some(c=>c.slot===i));if(!filled.length){const e=SLOTS.map((s,i)=>i).filter(slotOn);const i=pick(e),s=SLOTS[i];const w=walker({x:PIN.x,y:PIN.y,speed:48,slot:i,st:'go',browse:1});w.path=[{x:PIN.x,y:AROW},{x:s.cx,y:AROW},{x:s.cx,y:s.sy}];custs.push(w);return}
+  const i=pick(filled),s=SLOTS[i],ax=s.cx;
+  const w=walker({x:PIN.x,y:PIN.y,speed:48,slot:i,st:'go'});w.path=[{x:PIN.x,y:AROW},{x:ax,y:AROW},{x:ax,y:s.sy}];custs.push(w)}
+function custStep(w,dt){
+  const done=moveAlong(w,dt);
+  if(w.st==='go'&&done){w.st='look';w.t=1.4;w.dir=SLOTS[w.slot].x>w.x?0:Math.PI}
+  else if(w.st==='look'){w.t-=dt;if(w.t<=0){const it=G.shop[w.slot];if(!it){addSat(-2);notify(G.staff.repos?'repos':'Loja','empty','Os clientes estão a encontrar as mesas vazias.')}const yes=it&&Math.random()<buyChance(it.sp);if(it&&!yes&&price(it.sp)/SP[it.sp].price>1.15){addSat(-1.5);w.bubble='price';w.st='leave';w.t=1.4;w.path=[{x:w.x,y:AROW},{x:PIN.x,y:AROW},{x:PIN.x,y:PIN.y+30}];if(Math.random()<.35)notify(G.staff.caixa?'caixa':'Loja','pr'+it.sp,`Os clientes acham a ${SP[it.sp].n} cara a ${fmt(price(it.sp))}.`)}else if(yes){w.item=it;w.price=price(it.sp);G.shop[w.slot]=null;w.carry={kind:'plant',p:{sp:it.sp,stage:2,age:99}};w.bubble='heart';w.st='toq';w.t=.6}else{w.bubble='meh';w.st='leave';w.t=1;w.path=[{x:w.x,y:AROW},{x:PIN.x,y:AROW},{x:PIN.x,y:PIN.y+30}]}}}
+  else if(w.st==='toq'){w.t-=dt;if(w.t<=0){w.bubble=null;w.st='q';w.path=[{x:w.x,y:AROW},{x:QX(4),y:AROW}]}}
+  else if(w.st==='q'){const qi=custs.filter(c=>c.st==='q'||c.st==='wait').indexOf(w);const tx=QX(qi);if(!w.path.length&&Math.abs(w.x-tx)+Math.abs(w.y-QY)>2)w.path=[{x:tx,y:QY}];if(done&&Math.abs(w.x-tx)<2){w.st='wait';w.wt=0;w.dir=-Math.PI/2}}
+  else if(w.st==='wait'){const qi=custs.filter(c=>c.st==='q'||c.st==='wait').indexOf(w),tx=QX(qi);if(Math.abs(w.x-tx)>2){w.path=[{x:tx,y:QY}]}w.wt+=dt;w.bubble=w.wt>22?'angry':'pay';if(w.wt>32){w.bubble='angry';addSat(-6);const e=G.shop.indexOf(null);if(e>=0)G.shop[e]=w.item;w.carry=null;w.st='leave';w.t=1;w.path=[{x:PIN.x,y:QY},{x:PIN.x,y:PIN.y+30}];toast('Um cliente desistiu da caixa')}}
+  else if(w.st==='leave'){w.t-=dt;if(w.t<0)w.bubble=null;if(done)w.gone=true}
 }
-function render(){
-  const cv=$('#map');if(!cv)return;const f=camFit();if(!f)return;
-  const d=Math.min(2,devicePixelRatio||1),pw=Math.round(f.W*d),ph=Math.round(f.H*d);
-  if(cv.width!==pw||cv.height!==ph){cv.width=pw;cv.height=ph}
-  const D=stateWorld();D.view={x:VS.cam.x,y:VS.cam.y,w:f.vw};drawWorld(cv,D);
+function cobrar(by){const w=custs.find(c=>c.st==='wait');if(!w)return;const v=w.price??price(w.item.sp);G.money+=v;G.earned+=v;G.sold++;addSat(w.wt<10?1.2:w.wt<20?.3:-1);floats.push({x:CNT.reg.x,y:CNT.reg.y-10,t:0,txt:'+'+fmt(v)});w.bubble=w.wt<20?'happy':'ok';w.st='leave';w.t=1.2;w.path=[{x:PIN.x,y:QY},{x:PIN.x,y:PIN.y+30}];save()}
+/* ---------- outside life ---------- */
+let pedT=1,carT=2,custT=6;
+function outsideLife(dt){
+  pedT-=dt;if(pedT<=0){pedT=2+Math.random()*4;const l=Math.random()<.5,side=Math.random()<.6?19.45:23.5,w=walker({x:l?-20:OUT.w*TS+20,y:side*TS,speed:38+R(0,16)});w.path=[{x:l?OUT.w*TS+20:-20,y:w.y}];w.enter=side<20&&isOpen()&&Math.random()<.2+G.sat/250;peds.push(w)}
+  peds.forEach(w=>{if(w.enter&&Math.abs(w.x-POUT.x)<3&&!w.inn){w.inn=1;w.path=[{x:POUT.x,y:POUT.y-6}]}moveAlong(w,dt);if(!w.path.length){if(w.inn){w.gone=1;spawnCust()}else w.gone=1}});peds=peds.filter(w=>!w.gone);
+  carT-=dt;if(carT<=0){carT=4+Math.random()*5;const l=Math.random()<.5;cars.push({x:l?-60:OUT.w*TS+60,y:(l?20.95:22.05)*TS,v:l?1:-1,col:pick(['#e05a47','#3d7cc9','#f2b134','#f4f1ea','#2a9d8f','#7b5ea7'])})}
+  cars.forEach(k=>{const ahead=scene==='out'&&Math.abs(P.y-k.y+14)<26&&(k.v>0?P.x-k.x>0&&P.x-k.x<80:k.x-P.x>0&&k.x-P.x<80);if(!ahead)k.x+=k.v*95*(1/60)*(dt*60)});cars=cars.filter(k=>k.x>-80&&k.x<OUT.w*TS+80);
 }
+/* ---------- nursery ---------- */
+function potsTick(dt){G.pots.forEach((p,i)=>{if(!p||!potOn(i))return;if(!p.pest&&p.g<1&&Math.random()<dt/420)p.pest=1;if(p.pest)return;if(p.g<1&&p.w>0)p.g=Math.min(1,p.g+dt/SP[p.sp].t);p.w=Math.max(0,p.w-dt*1.1)})}
+const stageOf=p=>p.g<.34?0:p.g<1?1:2;
+/* ---------- input ---------- */
+const keys={};let joy=null;
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key===' '||e.key.toLowerCase()==='e'){doAct();e.preventDefault()}if(e.key==='Escape')closeSheet()});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0});
+const gp=e=>ROT?{x:e.clientY,y:innerWidth-e.clientX}:{x:e.clientX,y:e.clientY};
+cv.addEventListener('pointerdown',e=>{const q=gp(e);if(q.x<W*.6){joy={id:e.pointerId,x0:q.x,y0:q.y,x:q.x,y:q.y};cv.setPointerCapture(e.pointerId)}});
+cv.addEventListener('pointermove',e=>{if(joy&&e.pointerId===joy.id){const q=gp(e);joy.x=q.x;joy.y=q.y}});
+const endJoy=e=>{if(joy&&e.pointerId===joy.id)joy=null};cv.addEventListener('pointerup',endJoy);cv.addEventListener('pointercancel',endJoy);
+$('#act').addEventListener('click',()=>doAct());
+/* ---------- interaction ---------- */
+let near=null;
+function findNear(){
+  if(busy>0)return null;
+  if(scene==='out'){
+    let best=null,bd=46;POTS.forEach((p,i)=>{if(!potOn(i))return;const d=Math.hypot(P.x-p.x,(P.y-p.y)*1.3);if(d<bd&&Math.abs(P.y-p.y)<44){bd=d;best=i}});
+    if(best!=null){const p=G.pots[best];if(!p)return{t:'sow',i:best,label:'Semear',hint:'Vaso vazio. Semeia uma planta.'};const n=SP[p.sp].n;if(p.pest)return{t:'treat',i:best,label:'Tratar €1',hint:`${n} tem pragas! Trata para voltar a crescer.`};if(p.g>=1)return{t:'harvest',i:best,label:'Colher',hint:`${n} pronta! Colhe e leva para a loja.`};if(p.w<45)return{t:'water',i:best,label:'Regar',hint:`${n} tem sede.`};return{t:'none',label:'A crescer',hint:`${n} a crescer (${Math.round(p.g*100)}%) · água ${Math.round(p.w)}%`}}
+    for(const b of BUILD)if(b.id&&b.id!=='shop'&&Math.abs(P.x-b.door)<26&&Math.abs(P.y-(b.y+b.h+6))<24)return{t:'none',label:'Fechado',hint:`${b.sign}: em breve poderás entrar.`};
+    return null}
+  if(Math.hypot(Math.max(CTR.x-P.x,0,P.x-CTR.x-CTR.w),Math.max(CTR.y-P.y,0,P.y-CTR.y-CTR.h))<34){const w=custs.find(c=>c.st==='wait');return w?{t:'pay',label:'Cobrar €'+SP[w.item.sp].price,hint:'Um cliente está à espera para pagar.'}:{t:'none',label:'Caixa',hint:'Fica aqui para cobrar aos clientes.'}}
+  let best=null,bd=40;SLOTS.forEach((s,i)=>{if(!slotOn(i))return;const d=Math.hypot((P.x-s.x)*.6,(P.y-s.y-4)*.9);if(d<bd){bd=d;best=i}});
+  if(best!=null){const it=G.shop[best];if(it)return{t:'none',label:SP[it.sp].n,hint:`${SP[it.sp].n} à venda por ${fmt(price(it.sp))}`};const has=KEYS.some(k=>G.inv[k]>0);return has?{t:'place',i:best,label:'Pôr à venda',hint:'Lugar vazio. Põe uma planta à venda.'}:{t:'none',label:'Vazio',hint:'Não tens plantas. Vai ao viveiro colher.'}}
+  return null}
+function doAct(){
+  if($('#layer').innerHTML)return;
+  const n=near;if(!n||n.t==='none')return;
+  if(n.t==='sow')openSheet('sow',n.i);
+  else if(n.t==='water'){busy=.9;P.carry={kind:'can'};P.anim='water';P.tgt=POTS[n.i];G.pots[n.i].w=100;setTimeout(()=>{P.carry=null;P.anim=null},900);save()}
+  else if(n.t==='treat'){if(G.money<1)return toast('Não tens €1 para o tratamento');G.money-=1;busy=.9;P.anim='water';P.tgt=POTS[n.i];P.pcol='#7bc96f';G.pots[n.i].pest=0;setTimeout(()=>{P.anim=null;P.pcol=null},900);save();hud()}
+  else if(n.t==='harvest'){const p=G.pots[n.i];G.pots[n.i]=null;G.inv[p.sp]=(G.inv[p.sp]||0)+1;floats.push({x:POTS[n.i].x,y:POTS[n.i].y-30,t:0,txt:'+1 '+SP[p.sp].n});busy=.6;P.carry={kind:'plant',p:{sp:p.sp,stage:2,age:99}};setTimeout(()=>P.carry=null,700);save();hud()}
+  else if(n.t==='place'){const own=KEYS.filter(k=>G.inv[k]>0);if(own.length===1)place(n.i,own[0]);else openSheet('place',n.i)}
+  else if(n.t==='pay'){cobrar();hud()}
+}
+function place(i,sp){if(!(G.inv[sp]>0))return;G.inv[sp]--;G.shop[i]={sp};closeSheet();save();hud();floats.push({x:SLOTS[i].x,y:SLOTS[i].y-30,t:0,txt:SP[sp].n+' à venda'})}
+function sow(i,sp){if(G.money<SP[sp].seed)return toast('Não tens dinheiro para a semente');G.money-=SP[sp].seed;G.pots[i]={sp,g:0,w:100};closeSheet();save();hud()}
+/* ---------- sheets ---------- */
+function openSheet(k,i){
+  const L=$('#layer');
+  if(k==='away'){L.innerHTML=awayHTML(i);return}
+  if(k==='gest'){if(i)UI.tab=i;L.innerHTML=gestHTML();return}
+  if(k==='help'){L.innerHTML=`<div class="back"><div class="sheet"><h2>Bem-vindo à rua</h2><p>Protótipo para sentires como seria andar pelo jogo. Do outro lado da estrada fica o teu viveiro, e em cima a tua loja.</p><div class="keys"><b>Andar</b><span>Setas ou WASD · no telemóvel, arrasta o dedo no lado esquerdo do ecrã</span><b>Agir</b><span>Botão rosa, E ou espaço</span><b>Viveiro</b><span>Semeia, rega e colhe as plantas</span><b>Loja</b><span>Entra pela porta azul, põe as plantas nas mesas e cobra na caixa</span></div><p>Os tempos estão acelerados (uma planta cresce em 1 a 2 minutos) só para testar.</p><button class="btn" data-x="start">Começar</button></div></div>`;return}
+  const own=KEYS.filter(k=>k==='x'||(k&&(G.inv[k]>0)));
+  const list=k==='sow'?KEYS.map(s=>`<div class="row"><img src="sprites/pl_${s}_2.png" alt=""><span><b>${SP[s].n}</b><small>Semente €${SP[s].seed} · ${SP[s].t} s a crescer · vende a ${fmt(price(s))}</small></span><button class="btn" data-x="sow" data-s="${s}" data-i="${i}" ${G.money<SP[s].seed?'disabled':''}>€${SP[s].seed}</button></div>`).join('')
+   :own.map(s=>`<div class="row"><img src="sprites/pl_${s}_2.png" alt=""><span><b>${SP[s].n}</b><small>Tens ${G.inv[s]} · vende a ${fmt(price(s))}</small></span><button class="btn" data-x="place" data-s="${s}" data-i="${i}">Pôr</button></div>`).join('');
+  L.innerHTML=`<div class="back" data-x="close"><div class="sheet" data-x="noop"><h2>${k==='sow'?'O que semear?':'Que planta pões à venda?'}</h2><p>${k==='sow'?'Tens €'+G.money+'.':'Escolhe do teu inventário.'}</p>${list}<div style="margin-top:12px"><button class="btn alt" data-x="close">Fechar</button></div></div></div>`;
+}
+function closeSheet(){$('#layer').innerHTML=''}
+function awayHTML(r){const h=r.el>=3600?Math.floor(r.el/3600)+' h '+Math.round(r.el%3600/60)+' min':Math.round(r.el/60)+' min';const L=[];
+  if(r.sold)L.push(`<b>${G.staff.caixa?'A Ana':'A loja'}</b> vendeu ${r.sold} planta${r.sold>1?'s':''}: <b>+${fmt(r.rev)}</b>`);if(r.restock)L.push(`O Rui encheu ${r.restock} lugares nas mesas`);if(r.harv)L.push(`A Marta colheu ${r.harv} e voltou a semear ${r.sown}`);
+  if(!G.staff.caixa)L.push('Sem caixa contratada, a loja não vende quando não estás. Contrata a Ana em Gestão › Equipa.');if(!G.staff.jard)L.push('Sem jardineira, as plantas do viveiro secam quando estás fora.');
+  return`<div class="back" data-x="close"><div class="sheet" data-x="noop"><h2>Enquanto estiveste fora</h2><p>Passaram ${h}. Saldo agora: <b>${fmt(G.money)}</b></p>${L.map(l=>`<div class="note g">${l}</div>`).join('')}<div style="margin-top:12px"><button class="btn" data-x="close">Continuar</button></div></div></div>`}
+$('#layer').addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;const x=b.dataset.x;if(x==='noop')return;if(x==='close'||(x==='start')){if(x==='start'){G.help=false;save();goLand()}closeSheet();return}if(x==='sow')sow(+b.dataset.i,b.dataset.s);else if(x==='place')place(+b.dataset.i,b.dataset.s);else gestAct(x,b)});
+$('#menu').addEventListener('click',()=>openSheet('gest'));
+let toastT;function toast(t){let el=$('.toast');if(!el){el=document.createElement('div');el.className='toast';$('#game').appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true},2200)}
 function hud(){
-  if(!$('#c-money'))return;const dv=debt(),pct=Math.round(Math.max(0,net()/GOAL*100));
-  $('#c-money b').textContent=fmt(S.money);
-  const de=$('#c-debt');de.hidden=!dv;de.textContent=dv?'dívida '+fmt(dv):'';
-  $('#c-goal i').style.width=clamp(pct,0,100)+'%';$('#c-goal b').textContent=pct+'%';
-  if(!S.won&&net()>=GOAL){S.won=true;layer()}
-  const bl=$('#b-alerts');bl.textContent=S.unread;bl.hidden=!S.unread;
-  const n=$('#b-orders');n.textContent=S.orders.length;n.hidden=!S.orders.length;
-  const tp=$('#tip'),t=tip();if(tp.dataset.t!==t){tp.dataset.t=t;tp.innerHTML=t;tp.hidden=false}
+  const inv=KEYS.filter(k=>G.inv[k]>0).map(k=>`<span class="chip"><img src="sprites/pl_${k}_2.png" alt="${SP[k].n}"><b>${G.inv[k]}</b></span>`).join('');
+  const waiting=custs.filter(c=>c.st==='wait').length;
+  $('#hud').innerHTML=`<span class="chip loc">${scene==='out'?(P.y>24.5*TS&&P.y<33*TS&&P.x>13*TS&&P.x<33*TS?'Viveiro':'Rua'):'Loja'}</span><span class="chip" ${G.money<0?'style="background:#ffd9d2"':''}>€<b>${Math.round(G.money)}</b></span><span class="chip">${isOpen()?'🟢':'🔴'}<b>${hh(nowH())}</b></span><span class="chip">${G.sat>=75?'😄':G.sat>=50?'🙂':G.sat>=30?'😐':'😠'}<b>${Math.round(G.sat)}%</b></span>${inv}${waiting&&scene==='out'?`<span class="chip" style="background:#c92468;color:#fff">${waiting} na caixa!</span>`:''}`;
 }
-function clockTick(){
-  const el=$('#c-day');if(!el)return;const h=hour(),night=h>=20||h<7,G=S.role==='garden',op=isOpen();
-  el.innerHTML=`${ic(night?'moon':'sun')}<span><b>${hm()}</b><small>Dia ${dayN()} · ${op?(G?'aberta até '+hh(S.close):'a trabalhar'):(G?'fechada · abre '+hh(S.open):'equipa em casa')}</small></span>`;
+/* ---------- collision & movement ---------- */
+function blocked(x,y){if(scene==='shop')return shopBlocked(x,y);const sol=OUTSOLID,W=OUT.w*TS,H=OUT.h*TS;if(x<8||x>W-8||y<10||y>H-2)return true;const fx=x-8,fy=y-6;return sol.some(r=>(r.bi==null||r.bi<G.benches)&&fx<r.x+r.w&&fx+16>r.x&&fy<r.y+r.h&&fy+8>r.y)}
+let fadeT=0,goTo=null;
+function switchScene(to){if(goTo)return;goTo=to;$('#fade').style.opacity=1;setTimeout(()=>{scene=to;if(to==='shop'){P.x=PIN.x;P.y=12.4*TS;P.dir=-Math.PI/2}else{P.x=POUT.x;P.y=POUT.y+6;P.dir=Math.PI/2}G.scene=scene;G.px=P.x;G.py=P.y;save();hud();$('#fade').style.opacity=0;setTimeout(()=>goTo=null,250)},230)}
+function playerStep(dt){
+  let dx=0,dy=0;
+  if(keys.arrowleft||keys.a)dx--;if(keys.arrowright||keys.d)dx++;if(keys.arrowup||keys.w)dy--;if(keys.arrowdown||keys.s)dy++;
+  if(joy){const jx=joy.x-joy.x0,jy=joy.y-joy.y0,l=Math.hypot(jx,jy);if(l>8){dx=jx/Math.max(l,40);dy=jy/Math.max(l,40)}}
+  const l=Math.hypot(dx,dy);P.moving=false;
+  if(busy>0){busy-=dt;if(P.tgt){P.dir=Math.atan2(P.tgt.y-P.y,P.tgt.x-P.x);if(Math.random()<.6)parts.push({x:P.x+Math.cos(P.dir)*14,y:P.y-22,vx:(P.tgt.x-P.x)*2.2,vy:(P.tgt.y-26-P.y+22)*2.2+20,life:.4,col:P.pcol})}return}
+  P.tgt=null;
+  if(l>0.05&&!goTo){const sp=118*Math.min(1,l),nx=P.x+dx/l*sp*dt,ny=P.y+dy/l*sp*dt;
+    if(!blocked(nx,P.y))P.x=nx;if(!blocked(P.x,ny))P.y=ny;
+    P.dir=Math.atan2(dy,dx);P.moving=true;P.walk+=sp*dt}
+  if(scene==='out'&&dy<-.2&&Math.abs(P.x-POUT.x)<22&&P.y<POUT.y+4&&P.y>POUT.y-30)switchScene('shop');
+  if(scene==='shop'&&P.y>13.35*TS&&P.x>DG[0]&&P.x<DG[1])switchScene('out');
 }
-function panelDraw(){const el=$('#cards');if(!el)return;VS.pv=S.v+'|'+Math.floor(S.t);el.innerHTML=panel()}
-function layer(){
-  const L=$('#layer');if(!S){L.innerHTML='';return}
-  const old=L.querySelector('.sheet'),st=old?old.scrollTop:0,same=old&&old.dataset.k===sheetKey();
-  L.innerHTML=sheet()+(UI.toast?`<div class="toast" role="status">${UI.toast}</div>`:'');
-  const nw=L.querySelector('.sheet');if(nw&&same)nw.scrollTop=st;
+/* ---------- camera & render ---------- */
+let W=0,H=0,dpr=1,cam={x:P.x,y:P.y};
+let ROT=false;
+function resize(){dpr=Math.min(2,devicePixelRatio||1);const iw=innerWidth,ih=innerHeight,gm=$('#game');
+  ROT=ih>iw&&matchMedia('(pointer:coarse)').matches;
+  if(ROT){W=ih;H=iw;gm.style.width=ih+'px';gm.style.height=iw+'px';gm.style.transformOrigin='0 0';gm.style.transform=`translateX(${iw}px) rotate(90deg)`;gm.classList.add('rot90')}
+  else{W=iw;H=ih;gm.style.width='';gm.style.height='';gm.style.transform='';gm.classList.remove('rot90')}
+  cv.style.width=W+'px';cv.style.height=H+'px';cv.width=W*dpr;cv.height=H*dpr;
+  gm.style.setProperty('--gw',W+'px');gm.style.setProperty('--gh',H+'px');document.body.classList.toggle('land',W>H&&H<560)}
+addEventListener('resize',resize);resize();
+function render(){
+  const sc=scene==='out'?OUT:SHOP,MW=sc.w*TS,MH=sc.h*TS;
+  const z=W>H?Math.max(.8,Math.min(W/(scene==='out'?22:24)/TS,H/(scene==='out'?11.5:14.3)/TS)):Math.max(1,Math.min(W,H*1.15)/(scene==='out'?11.5:11)/TS);
+  const vw=W/z,vh=H/z;
+  cam.x+=(P.x-cam.x)*.15;cam.y+=(P.y-30-cam.y)*.15;
+  let cx=MW<=vw?MW/2:clamp(cam.x,vw/2,MW-vw/2),cy=MH<=vh?MH/2:clamp(cam.y,vh/2,MH-vh/2);
+  c.setTransform(1,0,0,1,0,0);c.fillStyle=scene==='out'?'#5ea34e':'#3b2a20';c.fillRect(0,0,cv.width,cv.height);
+  c.setTransform(z*dpr,0,0,z*dpr,(vw/2-cx)*z*dpr,(vh/2-cy)*z*dpr);
+  const tx0=Math.max(0,Math.floor((cx-vw/2)/TS)),tx1=Math.min(sc.w-1,Math.ceil((cx+vw/2)/TS)),ty0=Math.max(0,Math.floor((cy-vh/2)/TS)),ty1=Math.min(sc.h-1,Math.ceil((cy+vh/2)/TS));
+  if(scene==='out')for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++)drawTile(tile(scene,tx,ty),tx*TS,ty*TS,tx,ty);
+  const items=[];
+  if(scene==='out'){
+    OUTOBJ.forEach(o=>items.push(o));
+    POTS.forEach((p,i)=>potOn(i)&&items.push({k:p.y+.5,f:()=>{const g=G.pots[i];if(g&&g.pest){pAt(g.sp,stageOf(g),p.x,p.y,22);bug(p.x+9,p.y-30);bug(p.x-6,p.y-20);return}if(!g){pAt(null,0,p.x,p.y,22);return}pAt(g.sp,stageOf(g),p.x,p.y,22);if(g.g>=1){O(p.x+11,p.y-38,6,'#2f9e44');c.beginPath();c.moveTo(p.x+8,p.y-38);c.lineTo(p.x+10.5,p.y-35.5);c.lineTo(p.x+14.5,p.y-40.5);c.strokeStyle='#fff';c.lineWidth=2;c.stroke()}else if(g.w<45){c.beginPath();c.moveTo(p.x+11,p.y-46);c.bezierCurveTo(p.x+17,p.y-38,p.x+17,p.y-34,p.x+11,p.y-34);c.bezierCurveTo(p.x+5,p.y-34,p.x+5,p.y-38,p.x+11,p.y-46);c.fillStyle='#2f8fd6';c.fill();c.strokeStyle='#fff';c.lineWidth=1.5;c.stroke()}}}));
+    peds.forEach(w=>items.push({k:w.y,f:()=>person(w)}));
+    cars.forEach(k=>items.push({k:k.y,f:()=>car(k)}));
+    if(crew.jard&&!crew.jard.away)items.push({k:crew.jard.y,f:()=>person(crew.jard)});
+  }else{
+    shopFloor();
+    TBL.forEach((t,ti)=>items.push({k:t.y,f:()=>ti<G.tables?shopTable2(t):lockedArea(t.x,t.y,t.w,t.h-14,'Mais uma · mesa · Gestão › Loja')}));items.push({k:CTR.y+CTR.h,f:()=>counter2(CTR)});DECO.forEach(d=>items.push({k:d.y,f:()=>pAt(d.sp,2,d.x,d.y,d.r)}));items.push({k:17.9*TS,f:()=>{}});
+    items.push({k:BW+14,f:()=>{bag(18.4*TS,BW+16);bag(19.3*TS,BW+16);bag(18.85*TS,BW+4);bag(20.3*TS,BW+16)}});items.push({k:FW+1,f:shopFront});items.push({k:12.6*TS,f:()=>{const x=15.6*TS,y=12.6*TS;c.beginPath();c.moveTo(x-14,y);c.lineTo(x-10,y-34);c.lineTo(x+10,y-34);c.lineTo(x+14,y);c.lineWidth=3;c.strokeStyle='#8a5a35';c.stroke();c.beginPath();c.roundRect(x-12,y-36,24,26,3);c.fillStyle='#2d3a33';c.fill();outline(1.5);c.font='700 7px Fredoka,sans-serif';c.textAlign='center';c.fillStyle='#fff';c.fillText('Plantas',x,y-25);c.fillStyle='#ffd84a';c.fillText('frescas!',x,y-16)}});
+    SLOTS.forEach((s,i)=>slotOn(i)&&items.push({k:s.y+.5,f:()=>{const it=G.shop[i];if(it)pAt(it.sp,2,s.x,s.y,s.rim);else{c.beginPath();c.ellipse(s.x,s.y-3,9,4,0,0,TAU);c.fillStyle='rgba(90,50,20,.12)';c.fill()}}}));
+    custs.forEach(w=>items.push({k:w.y,f:()=>person(w)}));
+    for(const k in crew){const w=crew[k];if(w.sc==='shop'&&!w.away)items.push({k:w.y,f:()=>person(w)})}
+  }
+  items.push({k:P.y,f:()=>{person(P);if(near&&near.t!=='none'){c.font='800 11px Nunito,sans-serif';c.textAlign='center';c.lineWidth=3;c.strokeStyle='#fff';c.strokeText('▲',P.x,P.y-64);c.fillStyle='#c92468';c.fillText('▲',P.x,P.y-64)}}});
+  items.sort((a,b)=>a.k-b.k).forEach(o=>o.f());
+  parts.forEach(p=>{c.globalAlpha=Math.max(0,p.life/.4);O(p.x,p.y,2,p.col||'#3b9be0')});c.globalAlpha=1;
+  (scene==='out'?peds:custs).forEach(w=>{if(w.bubble)bubble(w)});
+  floats.forEach(f=>{c.globalAlpha=Math.max(0,1-f.t/1.4);c.font='800 14px Nunito,sans-serif';c.textAlign='center';c.lineWidth=3;c.strokeStyle='#fff';c.strokeText(f.txt,f.x,f.y-f.t*24);c.fillStyle='#2f9e44';c.fillText(f.txt,f.x,f.y-f.t*24)});c.globalAlpha=1;
+  const dk=darkness()*(scene==='out'?1:.35);
+  if(dk>0){c.setTransform(dpr,0,0,dpr,0,0);c.fillStyle=`rgba(10,18,55,${.68*dk})`;c.fillRect(0,0,W,H);c.setTransform(z*dpr,0,0,z*dpr,(vw/2-cx)*z*dpr,(vh/2-cy)*z*dpr);
+    if(scene==='out'){c.globalCompositeOperation='lighter';for(let x=4;x<48;x+=9){const lx=x*TS,ly=19.85*TS-62,g=c.createRadialGradient(lx,ly,2,lx,ly,70);g.addColorStop(0,`rgba(255,220,140,${.45*dk})`);g.addColorStop(1,'rgba(255,220,140,0)');c.fillStyle=g;c.fillRect(lx-70,ly-70,140,140)}c.globalCompositeOperation='source-over'}}
+  c.setTransform(dpr,0,0,dpr,0,0);
+  if(joy){const jx=joy.x-joy.x0,jy=joy.y-joy.y0,l=Math.hypot(jx,jy),m=Math.min(1,46/Math.max(l,1));c.beginPath();c.arc(joy.x0,joy.y0,52,0,TAU);c.fillStyle='rgba(255,255,255,.18)';c.fill();c.strokeStyle='rgba(255,255,255,.6)';c.lineWidth=3;c.stroke();c.beginPath();c.arc(joy.x0+jx*m,joy.y0+jy*m,24,0,TAU);c.fillStyle='rgba(255,255,255,.85)';c.fill()}
 }
-const sheetKey=()=>S.over?'over':S.report?'rep':UI.sheet?UI.sheet.t+(UI.sheet.t==='panel'?S.tab:UI.sheet.id||''):'';
-function shell(){
-  if($('#map'))return;
-  const G=S.role==='garden';
-  const dock=(G?[['main','store','Loja'],['price','tag','Preços'],['forn','truck','Comprar'],['orders','clip','Pedidos'],['team','team','Equipa'],['upg','hammer','Obras'],['bank','bank','Banco']]:[['main','sprout','Estufa'],['price','tag','Preços'],['orders','clip','Pedidos'],['team','team','Equipa'],['upg','hammer','Obras'],['bank','bank','Banco']]);
-  $('#game').innerHTML=`<div class="stage"><canvas id="map" aria-label="Mapa"></canvas>
-  <header class="top"><div class="chip day" id="c-day"></div><button class="chip" id="c-money" data-act="tab" data-arg="bank">${ic('coin')}<b></b><small id="c-debt" class="r" hidden></small></button><button class="chip goal" id="c-goal" data-act="tab" data-arg="main" aria-label="Meta">${ic('flag')}<span class="gt"><i></i></span><b></b></button></header>
-  <p class="tipb" id="tip" data-act="hidetip"></p>
-  <div class="side-ctl"><button class="rb bell" data-act="tab" data-arg="alerts" aria-label="Avisos da equipa">${ic('bell')}<em id="b-alerts" hidden></em></button><button class="rb water" data-act="waterAll" aria-label="Regar tudo">${ic('drop')}</button></div>
-  <nav class="dock">${dock.map(([k,i,l])=>`<button data-act="tab" data-arg="${k}">${ic(i)}<span>${l}</span>${k==='orders'?'<em id="b-orders" hidden></em>':''}</button>`).join('')}</nav>
-  <div class="sr" id="srs"></div></div>`;
-  const cv=$('#map'),pts=new Map();let drag=null;
-  const toWorld=(cx,cy)=>{const r=cv.getBoundingClientRect(),f=camFit();return{x:VS.cam.x+(cx-r.left)/f.z,y:VS.cam.y+(cy-r.top)/f.z}};
-  const hit=(cx,cy)=>{const{x,y}=toWorld(cx,cy);if(LV1ON){const sy=64+y*.72;let b=-1,bb=-1;for(let i=0;i<24;i++){const q=lv1Pot(i);if(i>=S.slots){const[bl,br,fl,fr,by_,fy]=L1.B[q.b];if(x>Math.min(bl,fl)*L1.s&&x<Math.max(br,fr)*L1.s&&sy>by_*L1.s&&sy<fy*L1.s)return i;continue}if(Math.abs(x-q.sx)<q.rim*.8&&sy>q.sy-q.rim*1.9&&sy<q.sy+5&&q.sy>bb){b=i;bb=q.sy}}return b}let b=-1,by=-1;for(let i=0;i<12*S.rows;i++){if(LV1ON)break;const p=slotPos(i),open=i<S.slots,yy=Y(p.y,open?TBH:0);if(Math.abs(x-p.x)<22&&y>yy-(open?46:16)&&y<yy+(open?8:16)&&p.y>by){b=i;by=p.y}}return b};
-  cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(pts.size===1)drag={x:e.clientX,y:e.clientY,cx:VS.cam.x,cy:VS.cam.y,moved:false};else if(drag)drag.moved=true});
-  cv.addEventListener('pointermove',e=>{
-    if(!pts.has(e.pointerId)){cv.style.cursor=hit(e.clientX,e.clientY)>=0?'pointer':'grab';return}
-    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>7)drag.moved=true;if(drag.moved){const f=camFit();VS.cam.x=drag.cx-dx/f.z;VS.cam.y=drag.cy-dy/f.z;camFit()}}});
-  const up=e=>{if(drag&&!drag.moved&&pts.size===1&&S){const i=hit(e.clientX,e.clientY);if(i>=0){const p=S.plants.find(q=>q.slot===i&&!VS.hidden.has(q.id));act('tile',p?String(p.id):'x'+i)}}pts.delete(e.pointerId);if(!pts.size)drag=null};
-  cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{pts.delete(e.pointerId);drag=null});
+/* ---------- gestão: relógio real, equipa, preços, fornecedor, banco ---------- */
+const WS=sp=>Math.max(2,Math.round(SP[sp].price*.5));
+const fmt=v=>(v<0?'−€':'€')+Math.abs(Math.round(v));
+const nowD=()=>new Date(Date.now()+(G.hOff||0)*3600e3);
+const nowH=()=>{const d=nowD();return d.getHours()+d.getMinutes()/60};
+const dayIdx=()=>{const d=nowD();return Math.floor((d.getTime()-d.getTimezoneOffset()*60e3)/864e5)};
+const hh=h=>String(Math.floor(h)%24).padStart(2,'0')+':'+String(Math.floor((h%1)*60)).padStart(2,'0');
+const isOpen=()=>{const h=nowH();return h>=G.open&&h<G.close};
+const darkness=()=>{const h=nowH();if(h>=8&&h<19)return 0;if(h>=21||h<6)return 1;return h<8?(8-h)/2:(h-19)/2};
+const slotOn=i=>i<G.tables*8,potOn=i=>i<G.benches*8;
+const price=sp=>G.price[sp]??SP[sp].price;
+const buyChance=sp=>clamp(1.05-(price(sp)/SP[sp].price-.9)*1.5,.08,.97);
+function priceTag(sp){const r=price(sp)/SP[sp].price;return r<.9?['barato','g']:r<=1.1?['preço justo','g']:r<=1.3?['caro','w']:['muito caro','r']}
+const addSat=d=>{G.sat=clamp((G.sat??70)+d,0,100)};
+const STAFF=[
+ {k:'caixa',n:'Ana',r:'Caixa',w:25,shirt:'#3d7cc9',d:'Fica no balcão e cobra os clientes por ti enquanto a loja está aberta.'},
+ {k:'repos',n:'Rui',r:'Repositor',w:20,shirt:'#f2b134',d:'Vai buscar plantas ao teu stock e enche as mesas vazias.'},
+ {k:'jard',n:'Marta',r:'Jardineira',w:22,shirt:'#e05a47',d:'No viveiro: rega, trata pragas, colhe e volta a semear.'}];
+const wages=()=>STAFF.reduce((a,s)=>a+(G.staff[s.k]?s.w:0),0);
+function notify(who,key,msg,lvl){const now=Date.now();if(key&&G.akeys[key]&&now-G.akeys[key]<4*60e3)return;if(key)G.akeys[key]=now;const s=STAFF.find(x=>x.k===who);G.alerts.unshift({t:now,who:s?s.n+' · '+s.r:who,msg,lvl:lvl||'w'});G.alerts=G.alerts.slice(0,30);G.unread++;toast((s?s.n+': ':'')+msg);badge()}
+function badge(){const b=$('#menu');if(b)b.dataset.n=G.unread>0?G.unread:''}
+/* bank */
+const debt=()=>G.bank.loans.reduce((a,l)=>a+l.left,0);
+const days=()=>Math.max(1,(Date.now()-G.start)/864e5);
+const avgRev=()=>G.earned/days();
+function score(){const b=G.bank;return Math.round(clamp(520+b.ok*10-b.miss*70+b.paid*40+(G.sat-60)*1.5+Math.min(150,avgRev()*.8)-debt()*.06,300,900))}
+function rating(sc){return sc>=750?{n:'Excelente',r:.04,c:'#2f9e44'}:sc>=650?{n:'Bom',r:.07,c:'#2f9e44'}:sc>=550?{n:'Razoável',r:.11,c:'#e0a21b'}:sc>=450?{n:'Fraco',r:.16,c:'#e0a21b'}:{n:'Recusado',r:0,c:'#d2452b'}}
+function limit(){const sc=score();if(sc<450)return 0;return Math.max(0,Math.floor((clamp((300+avgRev()*6)*(sc/650),0,4000)-debt())/50)*50)}
+function loanTerms(a,d){const rt=rating(score()).r+(d>10?.03:0),total=Math.round(a*(1+rt));return{rt,total,inst:Math.ceil(total/d)}}
+function payLoans(lines){const b=G.bank;b.loans.forEach(l=>{if(G.money>=Math.min(l.inst,l.left)){const v=Math.min(l.inst,l.left);G.money-=v;l.left-=v;b.ok++;lines.push(`Banco: prestação paga ${fmt(v)} (faltam ${fmt(l.left)})`)}else{b.miss++;l.left+=10;lines.push('Banco: prestação falhada. Multa de €10 e a nota de crédito desceu')}});
+  b.loans.filter(l=>l.left<=0).forEach(()=>{b.paid++;lines.push('Empréstimo pago na totalidade. A nota de crédito subiu')});b.loans=b.loans.filter(l=>l.left>0)}
+/* midnight: wages and loan instalments */
+function newDay(){const d=dayIdx();if(G.lastDay==null){G.lastDay=d;return}if(d<=G.lastDay)return;const n=Math.min(30,d-G.lastDay);G.lastDay=d;const lines=[];
+  for(let i=0;i<n;i++){const w=wages();if(w){G.money-=w;lines.push(`Salários da equipa: ${fmt(-w)}`)}payLoans(lines)}
+  if(G.money<0){addSat(-5);lines.push('Ficaste com saldo negativo. Vende ou pede crédito para pagar a equipa.')}
+  if(lines.length){G.alerts.unshift({t:Date.now(),who:'Contas da meia-noite',msg:lines.join(' · '),lvl:G.money<0?'r':'g'});G.unread++;badge()}save()}
+/* offline: what happened while the game was closed */
+function catchUp(){const now=Date.now(),el=Math.min(8*3600,(now-(G.lastT||now))/1000);G.lastT=now;if(el<45)return;
+  const r={el,harv:0,sown:0,sold:0,rev:0,restock:0};
+  G.pots.forEach((p,i)=>{if(!p||!potOn(i))return;
+    if(G.staff.jard){let t=el,cy=0;p.pest=0;while(t>0&&cy++<3){const need=(1-p.g)*SP[p.sp].t;if(t<need){p.g+=t/SP[p.sp].t;break}t-=need;G.inv[p.sp]=(G.inv[p.sp]||0)+1;r.harv++;if(G.money>=SP[p.sp].seed){G.money-=SP[p.sp].seed;r.sown++;p.g=0}else{G.pots[i]=null;break}}if(G.pots[i])G.pots[i].w=Math.max(G.pots[i].w,70)}
+    else if(!p.pest){const wet=Math.min(el,p.w/1.1);p.g=Math.min(1,p.g+wet/SP[p.sp].t);p.w=Math.max(0,p.w-el*1.1)}});
+  if(G.staff.caixa){const open=(G.close-G.open)/24,n=Math.min(40,Math.floor(el*open/Math.max(6,15-G.sat*.09)));
+    for(let k=0;k<n;k++){let f=G.shop.map((s,i)=>s&&slotOn(i)?i:-1).filter(i=>i>=0);
+      if(!f.length&&G.staff.repos){const sp=KEYS.find(s=>G.inv[s]>0);const e=G.shop.findIndex((s,i)=>!s&&slotOn(i));if(sp&&e>=0){G.inv[sp]--;G.shop[e]={sp};r.restock++;f=[e]}}
+      if(!f.length)break;const i=pick(f),sp=G.shop[i].sp;if(Math.random()<buyChance(sp)){G.shop[i]=null;const v=price(sp);G.money+=v;G.earned+=v;G.sold++;r.sold++;r.rev+=v}}}
+  if(r.harv||r.sold||el>600)openSheet('away',r);save()}
+/* staff walkers */
+let crew={};
+const STOCK={x:20.4*TS,y:4.15*TS},TOP=4.15*TS,NHOME={x:14.2*TS,y:29.75*TS};
+function mkStaff(s){const home=s.k==='caixa'?{x:CNT.a.x,y:CNT.a.y}:s.k==='repos'?{...STOCK}:{...NHOME};return walker({x:home.x,y:home.y,home,speed:66,staff:s.k,sc:s.k==='jard'?'out':'shop',label:s.n,look:{shirt:s.shirt,apron:'#2f7a2a',hair:pick(HAIR),skin:pick(SKIN),pants:'#3d4a5c'},t:1,job:null,dir:Math.PI/2})}
+function syncStaff(){STAFF.forEach(s=>{if(G.staff[s.k]&&!crew[s.k])crew[s.k]=mkStaff(s);if(!G.staff[s.k])delete crew[s.k]})}
+function stockCount(sp){return(G.inv[sp]||0)+G.shop.filter(s=>s&&s.sp===sp).length+G.pots.filter(p=>p&&p.sp===sp).length}
+function staffStep(dt){const on=isOpen();
+  for(const k in crew){const w=crew[k];
+    if(!on){if(!w.away&&w.job&&w.job.sp&&k==='repos')G.inv[w.job.sp]=(G.inv[w.job.sp]||0)+1;w.away=true;w.path=[];w.job=null;w.carry=null;w.x=w.home.x;w.y=w.home.y;continue}
+    w.away=false;const done=moveAlong(w,dt);
+    if(k==='caixa'){if(done)w.dir=Math.PI/2;const q=custs.find(c=>c.st==='wait');if(q){w.t-=dt;w.bubble=w.t<.8?null:null;if(w.t<=0){w.t=1.8;cobrar(w.label)}}else w.t=1.8}
+    else if(k==='repos'){
+      if(w.job){if(done){w.t-=dt;if(w.t<=0){const j=w.job,s=SLOTS[j.i];
+        if(j.ph===0){if(!G.shop[j.i]&&slotOn(j.i)){G.shop[j.i]={sp:j.sp};floats.push({x:s.x,y:s.y-30,t:0,txt:SP[j.sp].n+' à venda'})}else G.inv[j.sp]=(G.inv[j.sp]||0)+1;w.carry=null;j.ph=1;j.sp=null;w.path=[{x:s.cx,y:TOP},{...w.home}];w.t=0}
+        else{w.job=null;w.t=1.2}}}}
+      else{w.t-=dt;if(w.t<=0){w.t=1.5;const free=SLOTS.map((s,i)=>i).filter(i=>slotOn(i)&&!G.shop[i]);const own=KEYS.filter(s=>G.inv[s]>0);
+        if(free.length&&own.length){const i=free[0],sp=own.sort((a,b)=>G.inv[b]-G.inv[a])[0],s=SLOTS[i];G.inv[sp]--;w.carry={kind:'plant',p:{sp,stage:2,age:99}};w.job={i,sp,ph:0};w.path=[{x:s.cx,y:TOP},{x:s.cx,y:s.sy}];w.t=.6}
+        else if(free.length>=4)notify('repos','stock','O stock acabou e há mesas vazias. Colhe no viveiro ou compra ao fornecedor.')}}}
+    else if(k==='jard'){
+      if(w.job){const j=w.job;if(done){if(j.ph===0){w.dir=Math.PI/2;w.t-=dt;if(scene==='out'&&(j.k===3||j.k===4)&&Math.random()<.6){const p=POTS[j.i];parts.push({x:w.x,y:w.y-22,vx:(p.x-w.x)*2.2,vy:(p.y-26-w.y+22)*2.2+20,life:.4,col:j.k===4?'#7bc96f':'#3b9be0'})}
+          if(w.t<=0){const p=G.pots[j.i];
+            if(j.k===4&&p){p.pest=0;G.money-=1}
+            else if(j.k===3&&p)p.w=100;
+            else if(j.k===2&&p&&p.g>=1){G.inv[p.sp]=(G.inv[p.sp]||0)+1;G.pots[j.i]=null;w.carry={kind:'plant',p:{sp:p.sp,stage:2,age:99}};if(scene==='out')floats.push({x:POTS[j.i].x,y:POTS[j.i].y-30,t:0,txt:'+1 '+SP[p.sp].n})}
+            else if(j.k===1&&!p){const ok=KEYS.filter(s=>G.money>=SP[s].seed).sort((a,b)=>stockCount(a)-stockCount(b));if(ok.length){const sp=ok[0];G.money-=SP[sp].seed;G.pots[j.i]={sp,g:0,w:100}}}
+            if(j.k!==2)w.carry=null;j.ph=1;w.path=[{x:w.home.x,y:j.row},{...w.home}]}}
+        else{w.job=null;w.carry=null;w.t=.8}}}
+      else{w.t-=dt;if(w.t<=0){w.t=1.2;let best=-1,pr=0;const cheap=Math.min(...KEYS.map(s=>SP[s].seed));
+        G.pots.forEach((p,i)=>{if(!potOn(i))return;let v=0;if(!p)v=G.money>=cheap?1:0;else if(p.pest)v=4;else if(p.w<50)v=3;else if(p.g>=1)v=2;if(v>pr){pr=v;best=i}});
+        if(best<0&&G.pots.some((p,i)=>potOn(i)&&!p))notify('jard','seed','Não há dinheiro para sementes. Vende plantas ou pede crédito no banco.');
+        if(best>=0){const p=POTS[best],row=best<8?27.15*TS:29.85*TS;w.job={i:best,ph:0,k:pr,row};w.carry=pr===3?{kind:'can'}:null;w.path=[{x:w.home.x,y:row},{x:p.x,y:row}];w.t=pr===1?.7:1}}}}
+  }}
+/* staff warnings without anyone asking */
+let warnT=8;
+function warnings(dt){warnT-=dt;if(warnT>0)return;warnT=10;
+  if(!G.staff.jard){const th=G.pots.filter((p,i)=>p&&potOn(i)&&p.w<20&&p.g<1).length,pe=G.pots.filter((p,i)=>p&&potOn(i)&&p.pest).length;
+    if(pe)notify('Viveiro','pest',`${pe} vaso${pe>1?'s têm':' tem'} pragas. Vai tratar ou contrata uma jardineira.`);
+    else if(th>=2)notify('Viveiro','dry',`${th} plantas estão a secar no viveiro.`)}
+  if(isOpen()&&!G.staff.caixa&&custs.filter(c=>c.st==='wait').length>=2&&scene!=='shop')notify('Loja','queue','Há clientes à espera na caixa. Vai cobrar ou contrata a Ana.')}
+/* ---------- gestão: janela com separadores ---------- */
+const TABS=[['team','👥','Equipa'],['price','🏷️','Preços'],['sup','🚚','Fornecedor'],['bank','🏦','Banco'],['shop','🏪','Loja'],['news','🔔','Avisos']];
+let UI={tab:'team',lamt:250,ldays:10};
+function gestHTML(){const t=UI.tab;let h='';
+  if(t==='team'){h=`<p>Salários pagos à meia-noite: <b>${fmt(wages())}</b> por dia. A equipa trabalha das ${hh(G.open)} às ${hh(G.close)}.</p>`+STAFF.map(s=>`<div class="row"><span class="av" style="background:${s.shirt}">${s.n[0]}</span><span><b>${s.n} · ${s.r}</b><small>${s.d}</small></span>${G.staff[s.k]?`<button class="btn alt" data-x="fire" data-s="${s.k}">Despedir</button>`:`<button class="btn" data-x="hire" data-s="${s.k}">Contratar<br><small style="color:#fff">${fmt(s.w)}/dia</small></button>`}</div>`).join('')}
+  if(t==='price'){h=`<p>O preço de referência é o que os clientes acham justo. Mais caro dá mais lucro por planta, mas vendes menos e a satisfação desce.</p>`+KEYS.map(s=>{const[tg,col]=priceTag(s);return`<div class="row"><img src="sprites/pl_${s}_2.png" alt=""><span><b>${SP[s].n}</b><small>Semente ${fmt(SP[s].seed)} · lucro ${fmt(price(s)-SP[s].seed)} · fornecedor ${fmt(WS(s))} · lucro ${fmt(price(s)-WS(s))}</small><small class="tag ${col}">${tg} · referência ${fmt(SP[s].price)} · compram ${Math.round(buyChance(s)*100)}%</small></span><span class="stp"><button data-x="pr" data-s="${s}" data-d="-1" aria-label="Baixar">−</button><b>${fmt(price(s))}</b><button data-x="pr" data-s="${s}" data-d="1" aria-label="Subir">+</button></span></div>`}).join('')}
+  if(t==='sup'){h=`<p>Compra plantas prontas ao produtor. Chegam ao teu stock e depois pões nas mesas (ou o Rui põe).</p>`+KEYS.map(s=>`<div class="row"><img src="sprites/pl_${s}_2.png" alt=""><span><b>${SP[s].n}</b><small>Custa ${fmt(WS(s))} · vendes a ${fmt(price(s))} · tens ${G.inv[s]||0}</small></span><span class="stp"><button class="btn" data-x="buy" data-s="${s}" data-n="1" ${G.money<WS(s)?'disabled':''}>+1</button><button class="btn" data-x="buy" data-s="${s}" data-n="5" ${G.money<WS(s)*5?'disabled':''}>+5</button></span></div>`).join('')}
+  if(t==='bank'){const sc=score(),rt=rating(sc),lim=limit(),b=G.bank,amt=Math.min(UI.lamt,lim),tm=loanTerms(amt,UI.ldays);
+    h=`<div class="card"><h3>Análise de crédito</h3><div class="meter"><i style="width:${(sc-300)/6}%;background:${rt.c}"></i></div><p><b>${sc}</b> · ${rt.n}</p><dl class="kv"><dt>Pagamentos a tempo</dt><dd>${b.ok}</dd><dt>Prestações falhadas</dt><dd>${b.miss}</dd><dt>Empréstimos pagos</dt><dd>${b.paid}</dd><dt>Faturação média</dt><dd>${fmt(avgRev())}/dia</dd><dt>Satisfação</dt><dd>${Math.round(G.sat)}%</dd><dt>Dívida</dt><dd>${fmt(debt())}</dd></dl></div>`;
+    if(sc<450||lim<50)h+=`<div class="card"><h3>Sem crédito por agora</h3><p>${sc<450?'A tua nota está abaixo de 450.':'Já usaste o teu limite.'} Paga o que deves e vende mais para teres crédito.</p></div>`;
+    else{const opts=[...new Set([100,250,500,1000,2000].filter(v=>v<lim).concat(lim))];
+      h+=`<div class="card"><h3>Pedir empréstimo</h3><p>Até <b>${fmt(lim)}</b>. Juro ${Math.round(rt.r*100)}% (20 dias: +3%). A prestação é cobrada à meia-noite.</p><div class="seg">${opts.map(v=>`<button data-x="lamt" data-n="${v}" aria-pressed="${amt===v}">${fmt(v)}</button>`).join('')}</div><div class="seg">${[10,20].map(v=>`<button data-x="ldays" data-n="${v}" aria-pressed="${UI.ldays===v}">${v} dias</button>`).join('')}</div><dl class="kv"><dt>Recebes agora</dt><dd>${fmt(amt)}</dd><dt>Total a pagar</dt><dd>${fmt(tm.total)}</dd><dt>Prestação</dt><dd>${fmt(tm.inst)}/dia · ${UI.ldays} dias</dd></dl><button class="btn" data-x="loan">Pedir ${fmt(amt)}</button></div>`}
+    h+=b.loans.map(l=>`<div class="card"><h3>Empréstimo de ${fmt(l.amount)}</h3><p>Falta ${fmt(l.left)} · ${fmt(l.inst)}/dia</p><button class="btn alt" data-x="payoff" data-n="${l.id}" ${G.money<l.left?'disabled':''}>Pagar tudo · ${fmt(l.left)}</button></div>`).join('')}
+  if(t==='shop'){const s=Math.round(G.sat),face=s>=75?'😄':s>=50?'🙂':s>=30?'😐':'😠';
+    h=`<div class="card"><h3>Satisfação ${face} ${s}%</h3><div class="meter"><i style="width:${s}%;background:${s>=50?'#2f9e44':s>=30?'#e0a21b':'#d2452b'}"></i></div><p>Sobe quando cobras depressa e os preços são justos. Desce com filas longas, mesas vazias e preços caros. Mais satisfação traz mais clientes e melhor crédito.</p></div>
+    <div class="card"><h3>Horário · agora ${hh(nowH())} ${isOpen()?'<span class="tag g">aberta</span>':'<span class="tag r">fechada</span>'}</h3><div class="hrs"><span>Abre</span><span class="stp"><button data-x="hr" data-s="open" data-d="-1">−</button><b>${hh(G.open)}</b><button data-x="hr" data-s="open" data-d="1">+</button></span><span>Fecha</span><span class="stp"><button data-x="hr" data-s="close" data-d="-1">−</button><b>${hh(G.close)}</b><button data-x="hr" data-s="close" data-d="1">+</button></span></div></div>
+    <div class="card"><h3>Crescer</h3>${G.tables<3?`<div class="row"><span class="av" style="background:#deaa68">🪑</span><span><b>Terceira mesa na loja</b><small>Mais 8 lugares para plantas</small></span><button class="btn" data-x="xtable" ${G.money<300?'disabled':''}>€300</button></div>`:'<p>A loja tem as 3 mesas.</p>'}${G.benches<2?`<div class="row"><span class="av" style="background:#d19b5c">🌱</span><span><b>Segunda bancada no viveiro</b><small>Mais 8 vasos para cultivar</small></span><button class="btn" data-x="xbench" ${G.money<200?'disabled':''}>€200</button></div>`:'<p>O viveiro tem as 2 bancadas.</p>'}</div>
+    <dl class="kv"><dt>Plantas vendidas</dt><dd>${G.sold}</dd><dt>Faturado no total</dt><dd>${fmt(G.earned)}</dd></dl>`}
+  if(t==='news'){G.unread=0;badge();h=G.alerts.length?G.alerts.map(a=>`<div class="note ${a.lvl}"><small>${new Date(a.t).toLocaleString('pt-PT',{weekday:'short',hour:'2-digit',minute:'2-digit'})} · ${a.who}</small>${a.msg}</div>`).join(''):'<p>Sem avisos. A equipa avisa-te aqui do que faltar.</p>'}
+  return`<div class="back" data-x="close"><div class="sheet wide" data-x="noop"><div class="tabs">${TABS.map(([k,i,l])=>`<button data-x="tab" data-s="${k}" aria-pressed="${t===k}"><span>${i}</span>${l}${k==='news'&&G.unread?`<em>${G.unread}</em>`:''}</button>`).join('')}<button data-x="close" aria-label="Fechar">✕</button></div><div class="money">Saldo <b>${fmt(G.money)}</b></div>${h}</div></div>`}
+function gestAct(x,b){const s=b.dataset.s,n=+b.dataset.n,d=+b.dataset.d;
+  if(x==='tab')UI.tab=s;
+  if(x==='hire'){G.staff[s]=1;syncStaff();const st=STAFF.find(q=>q.k===s);toast(`${st.n} contratada: ${fmt(st.w)} por dia`.replace('Rui contratada','Rui contratado'))}
+  if(x==='fire'){G.staff[s]=0;if(s==='repos'&&crew.repos&&crew.repos.job&&crew.repos.job.sp)G.inv[crew.repos.job.sp]=(G.inv[crew.repos.job.sp]||0)+1;syncStaff()}
+  if(x==='pr')G.price[s]=clamp(price(s)+d,1,SP[s].price*3);
+  if(x==='buy'){const c=WS(s)*n;if(G.money<c)return toast('Não tens dinheiro suficiente');G.money-=c;G.inv[s]=(G.inv[s]||0)+n;toast(`+${n} ${SP[s].n} no stock`)}
+  if(x==='lamt')UI.lamt=n;if(x==='ldays')UI.ldays=n;
+  if(x==='loan'){const lim=limit(),a=Math.min(UI.lamt,lim);if(a<50)return;const tm=loanTerms(a,UI.ldays);G.bank.loans.push({id:Date.now(),amount:a,left:tm.total,inst:tm.inst});G.money+=a;toast(`Banco aprovou ${fmt(a)}`)}
+  if(x==='payoff'){const l=G.bank.loans.find(q=>q.id===n);if(l&&G.money>=l.left){G.money-=l.left;l.left=0;G.bank.paid++;G.bank.loans=G.bank.loans.filter(q=>q.left>0)}}
+  if(x==='hr'){if(s==='open')G.open=clamp(G.open+d,5,12);else G.close=clamp(G.close+d,16,23)}
+  if(x==='xtable'&&G.money>=300){G.money-=300;G.tables=3;toast('Nova mesa na loja!')}
+  if(x==='xbench'&&G.money>=200){G.money-=200;G.benches=2;toast('Nova bancada no viveiro!')}
+  save();hud();$('#layer').innerHTML=gestHTML()}
+
+/* ---------- loop ---------- */
+let last=0,hudT=0,saveT=0,lastNear='',dayT=2;
+function loop(t){requestAnimationFrame(loop);try{step(t)}catch(e){console.error(e)}}
+function step(t){
+  const dt=Math.min(.05,(t-last)/1000||0);last=t;
+  playerStep(dt);potsTick(dt);outsideLife(dt);staffStep(dt);warnings(dt);
+  custT-=dt;if(custT<=0){custT=Math.max(5,15-G.sat*.09)*(.7+Math.random()*.6);if(isOpen()&&Math.random()<.55)spawnCust()}
+  dayT-=dt;if(dayT<=0){dayT=20;newDay()}
+  custs.forEach(w=>custStep(w,dt));custs=custs.filter(w=>!w.gone);
+  parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt});parts=parts.filter(p=>p.life>0);
+  floats.forEach(f=>f.t+=dt);floats=floats.filter(f=>f.t<1.4);
+  near=findNear();const key=near?near.label+near.hint:'';
+  if(key!==lastNear){lastNear=key;const b=$('#act');b.textContent=near?near.label:'…';b.disabled=!near||near.t==='none';$('#hint').textContent=near?near.hint:''}
+  hudT-=dt;if(hudT<=0){hudT=.5;hud()}
+  saveT-=dt;if(saveT<=0){saveT=3;G.px=P.x;G.py=P.y;G.lastT=Date.now();save()}
+  render();
 }
-function draw(){
-  const st=$('#start'),gm=$('#game');
-  document.body.classList.toggle('playing',!!S);
-  if(!S){st.hidden=false;gm.hidden=true;gm.innerHTML='';layer();return}
-  st.hidden=true;gm.hidden=false;shell();
-  $('#srs').innerHTML=[...Array(S.slots)].map((_,i)=>{const p=S.plants.find(q=>q.slot===i);return`<button data-act="tile" data-arg="${p?p.id:'x'+i}">${p?`${SP[p.sp].n}, água ${Math.round(p.w)}%, saúde ${Math.round(p.h)}%`:'Lugar vazio'}</button>`}).join('');
-  hud();clockTick();panelDraw();layer();
+rigLoad();syncStaff();newDay();hud();badge();if(G.help)openSheet('help');else catchUp();requestAnimationFrame(loop);
+document.addEventListener('visibilitychange',()=>{if(document.hidden){G.lastT=Date.now();save()}else{newDay();catchUp();hud()}});
+function goLand(){try{const d=document.documentElement;if(matchMedia('(pointer:coarse)').matches&&d.requestFullscreen&&!document.fullscreenElement)d.requestFullscreen().then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})).catch(()=>{})}catch(e){}}
+window.DBG=()=>({P,custs,S2:TS,spawnCust,G,crew,isOpen,nowH,catchUp,newDay,score,limit,syncStaff,setG:v=>{G=v}});
 }
-function save(){try{S?localStorage.setItem(KEY,JSON.stringify(S)):localStorage.removeItem(KEY)}catch(e){}}
-function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
-const DEMO={};
-function demo(role){
-  if(DEMO[role])return DEMO[role];
-  const sps=role==='garden'?['petunia','orquidea','lavanda','suculenta','monstera','petunia','lavanda','oliveira','petunia','suculenta','orquidea','monstera']:['petunia','lavanda','suculenta','orquidea','monstera','oliveira','petunia','lavanda','suculenta','monstera','petunia','lavanda'];
-  const ages=role==='garden'?sps.map(()=>99):[3,2,1,7,4,9,3,1,5,6,0,4];
-  const vis=sps.map((sp,i)=>({p:{sp,age:ages[i],h:95,w:80,pest:false}}));for(let i=0;i<12;i++)vis.push({p:{sp:sps[i],age:ages[i]+2,h:95,w:80}});
-  const walkers=role==='garden'?[mkW({...W1(552,600),dir:Math.PI/2,moving:true,look:{shirt:'#3d7cc9',hair:'#5a3825',skin:'#e0ac7e'},carry:{kind:'plant',p:{sp:'petunia',age:3,h:90}}}),mkW({...W1(793,520),dir:-Math.PI/2,look:{shirt:'#f2b134',hair:'#1b1b1b',skin:'#c68642'},bubble:'happy'}),mkW({...W1(312,480),dir:Math.PI/2,look:LOOKS.jard[0],carry:{kind:'can'}})]
-   :[mkW({...W1(565,560),dir:Math.PI/2,moving:true,look:LOOKS.trab[0],carry:{kind:'can'}}),mkW({...W1(325,520),dir:-Math.PI/2,look:LOOKS.trab[1],carry:{kind:'tray'}})];
-  walkers.forEach(w=>w.sc=1.25);
-  return DEMO[role]={role,slots:12,vis,walkers,door:0,van:{x:0,load:0},svan:0,parts:[],floats:[],night:0,sel:null,view:role==='prod'?{x:90,y:60,w:280}:{x:60,y:85,w:280},lv1:true,slots:24};
-}
-function startArt(dt){
-  [['artGarden','garden'],['artProd','prod']].forEach(([id,role])=>{
-    const cv=$('#'+id);if(!fitCanvas(cv,9/16))return;const D=demo(role);
-    D.walkers.forEach(w=>{if(w.moving)w.walk+=dt*40});
-    drawWorld(cv,D);
-  });
-}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.disabled||b.closest('#map'))return;act(b.dataset.act,b.dataset.arg)});
-document.addEventListener('pointerdown',()=>{VS.pd=true});
-document.addEventListener('pointerup',()=>{setTimeout(()=>{VS.pd=false},60)});
-document.addEventListener('pointercancel',()=>{VS.pd=false});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&UI.sheet){UI.sheet=null;draw()}});
-function start(d){
-  rigLoad();assetLoad();plLoad();
-  S=(d&&d.role&&d.base)?d:load();
-  if(S&&(!S.plants||!S.base||S.plants.some(p=>p.slot==null)))S=null;
-  geo(S&&S.rows||2);resetVS();VS.cam=null;VS.live=true;
-  if(S){catchUp();setupWalkers()}
-  draw();requestAnimationFrame(loop);
-}
-window.claude?.hot?.snapshot?.(()=>S);
-window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 </script>
 </body>
 </html>
